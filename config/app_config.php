@@ -11,7 +11,7 @@ session_start();
 include './config/autoloader.php';
 
 //DEFAULT TEMPLATE
-App::set('APP_NAME', 'OPS');
+App::set('APP_NAME', 'SmallVC');
 //END DEFAULT TEMPLAT
 //
 //DEFAULT TEMPLATE
@@ -19,11 +19,11 @@ App::set('DEFAULT_TEMPLATE', 'default');
 //END DEFAULT TEMPLATE
 
 //DEFAULT TITLE
-App::set('DEFAULT_TITLE', 'Strike Technologies Ops');
+App::set('DEFAULT_TITLE', 'Small-VC');
 //END DEFAULT TITLE
 
 //LOGIN SEED
-App::set('LOGIN_SEED', "op87t4ilbhf");
+App::set('LOGIN_SEED', "lijfg98u5;jfd7hyf");
 //END LOGIN SEED
 
-App::set('DEFAULT_CONTROLLER', 'Engine');
+App::set('DEFAULT_CONTROLLER', 'AppController');

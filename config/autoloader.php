@@ -2,8 +2,8 @@
 date_default_timezone_set('America/New_York');
 
 //DEFINE ROOTS
-define('WEBROOT', 'http://st-ny800-pc24:3535/');
-define('DOCROOT', 'C:\\inetpub\\Ops-App\\');
+define('WEBROOT', 'http://localhost/');
+define('DOCROOT', '/var/www/html/');
 //END DEFINE ROOTS
 
 //AUTOLOADER
