@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 39
+/Strike/Web/!svn/ver/306/Ops-App/config
+END
+Database.php
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/Strike/Web/!svn/ver/328/Ops-App/config/Database.php
+END
+app_config.php
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/Strike/Web/!svn/ver/306/Ops-App/config/app_config.php
+END
+autoloader.php
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/Strike/Web/!svn/ver/306/Ops-App/config/autoloader.php
+END
+error_log.txt
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/Strike/Web/!svn/ver/308/Ops-App/config/error_log.txt
+END

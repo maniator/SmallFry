@@ -1,0 +1,16 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="keywords" content="" />
+<meta name="description" content="" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<title><?php echo $page_title ?></title>
+<link rel="stylesheet" type="text/css" href="css/jquery-ui-1.8.9.custom.css" />
+<?php echo $jQuery; ?>
+<script>
+    var WEBROOT = "<?php echo  WEBROOT ?>";
+</script>
+</head>
+<body>
+	<?php echo App::get('main') ?>
+</body>
+</html>
