@@ -11,7 +11,7 @@ An example of a controller called `Test`:
 			
 			//pages go here
 			function index(){
-				self::set('test', 'hello there');
+				$this->set('test', 'hello there');
 			}
 		}
 ###Views:
@@ -41,6 +41,6 @@ For example:
 				while($row = $this->_mysql->get_row($result)){
 					$rows[] = $row;
 				}
-				self::set('rows', $row); //for use in the view
+				$this->set('rows', $row); //for use in the view
 			}
 		}

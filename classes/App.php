@@ -94,13 +94,13 @@ class App {
         App::set('main', $main);
         //LOAD VIEW
         ob_start();
-        $this->load_view($controllerName, 0);
+        $this->load_view($app_controller, 0);
         //END LOAD VIEW
         
         //LOAD TEMPLATE
         $main = ob_get_clean();
         App::set('main', $main);
-        $this->load_template($controllerName, $controllerName::get('jQuery'));
+        $this->load_template($app_controller, $app_controller->get('jQuery'));
         //END LOAD TEMPLATE
     }
     
@@ -134,7 +134,7 @@ class App {
     
     private function load_template($controllerName, $jQuery = null){
         
-        $page_title = $controllerName::get('title')?$controllerName::get('title'):App::get('DEFAULT_TITLE');
+        $page_title = $controllerName->get('title')?$controllerName->get('title'):App::get('DEFAULT_TITLE');
         //display output
         $cwd = dirname(__FILE__);
         $template_file = $cwd.'/../view/'.App::get('template').'.stp';
@@ -149,7 +149,7 @@ class App {
     private function load_view($controllerName, $saveIndex){
         
         //Bring the variables to the global scope
-        $vars = $controllerName::getAll();
+        $vars = $controllerName->getAll();
         foreach($vars as $key=>$variable){
             $$key = $variable;
         }
@@ -158,13 +158,6 @@ class App {
             $template_file = $cwd.'/../view/'.App::get('view').'/'.App::get('method').'.stp';
             if(is_file($template_file)){
                 include $template_file;
-                if(App::get('saveTable')){ //create downloadable table in session
-                    $_SESSION[App::get('APP_NAME')][strtolower($controller)][$saveIndex]['table'] = base64_encode(App::get('saveTable'));
-                    $_SESSION[App::get('APP_NAME')][strtolower($controller)][$saveIndex]['savename'] = App::get('saveName');
-                    if(isset($page)){
-                        $_SESSION[App::get('APP_NAME')][strtolower($controller)][$saveIndex]['page'] = $page + 1;
-                    }
-                }
             }
             else {
                 include $cwd.'/../view/missingview.stp'; //no such view error

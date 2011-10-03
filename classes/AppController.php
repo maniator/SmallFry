@@ -19,7 +19,7 @@ class AppController {
                 'include_jQuery', 'include_js', '_setHelpers',
                 '_validate_posts', '_doValidate', '_make_error'
             );
-    protected static $app_vars = array();
+    protected $app_vars = array();
     var $name = __CLASS__;
     var $helpers = array();
     var $validate = array();
@@ -31,7 +31,7 @@ class AppController {
         $this->_page_on = App::get('page');
         App::set('view', strtolower($this->name));
         $this->_allowed_pages = get_class_methods($this);
-        self::set('jQuery', $this->include_jQuery());
+        $this->set('jQuery', $this->include_jQuery());
         $this->setHelpers();
         $this->validator = new FormValidator();
         $this->_validate_posts();
@@ -42,16 +42,20 @@ class AppController {
         return;
     }
     
-    public static function get($v){
-        return isset(self::$app_vars[$v])?self::$app_vars[$v]:false;
+    public function init(){
+        
     }
     
-    protected static function set($v, $va){
-        return self::$app_vars[$v] = $va;
+    public function get($v){
+        return isset($this->app_vars[$v])?$this->app_vars[$v]:false;
     }
     
-    public static function getAll(){
-        return self::$app_vars;
+    protected function set($v, $va){
+        return $this->app_vars[$v] = $va;
+    }
+    
+    public function getAll(){
+        return $this->app_vars;
     }
     /**
      * Show the current page in the browser
