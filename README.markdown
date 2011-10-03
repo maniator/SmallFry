@@ -1,4 +1,4 @@
-Small VC
+SmallFry PHP Library
 ==
 
 ###Controller:
