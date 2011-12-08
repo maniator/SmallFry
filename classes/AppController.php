@@ -33,8 +33,8 @@ class AppController {
         $this->_allowed_pages = get_class_methods($this);
         $this->set('jQuery', $this->include_jQuery());
         $this->setHelpers();
-        $this->validator = new FormValidator();
-        $this->_validate_posts();
+
+        $this->_getPosts();
         $this->posts = (object) $this->posts;
         if(!isset($_SESSION[App::get('APP_NAME')][strtolower($this->name)])){
             $_SESSION[App::get('APP_NAME')][strtolower($this->name)] = array();
@@ -67,7 +67,6 @@ class AppController {
         if(in_array($this->_page_on, $this->_allowed_pages) 
                 && !in_array($this->_page_on, $this->_not_allowed_pages)
                         && !$private_fn)    {  
-            $home = $this->include_jQuery();
             call_user_func_array(array($this, $this->_page_on), $args);
         }
         else    {
@@ -135,32 +134,47 @@ class AppController {
         exit;
     }
     
-    protected function _validate_posts(){
-        foreach($this->validate as $field => $rules){
+    protected function _validate_form($validate = null, $values = null, $exit = true){
+        
+        $this->validator = new FormValidator(); //create new validator
+        
+        if($validate == null){
+            $validate = $this->validate;
+        }
+        
+        foreach($validate as $field => $rules){
             foreach($rules as $validate=>$message){
                 $this->validator->addValidation($field, $validate, $message);
             }
         }
-        $this->_doValidate();
+        
+        return $this->_doValidate($values, $exit);
     }
     
-    protected function _doValidate(){
+    protected function _doValidate($values = null, $exit = true){
         if(!(!isset($_POST) || count($_POST) == 0)){
             //some form was submitted
-            if(!$this->validator->ValidateForm()){
+            if(!$this->validator->ValidateForm($values)){
                 $error = '';
                 $error_hash = $this->validator->GetErrors();
                 foreach($error_hash as $inpname => $inp_err)
                 {
                   $error .= "$inp_err<br/>\n";
                 }
-                $this->_make_error($error);                
+                return $this->_make_error($error, $exit);                
             }
-            
+        }
+        return true;
+    }
+    
+    protected function _getPosts(){
+                
+        if(!(!isset($_POST) || count($_POST) == 0)){
             foreach($_POST as $key=>$post){
                 $this->posts[$key] = $post;
             }
         }
+        
     }
     
     function __get($var_name){
@@ -169,9 +183,7 @@ class AppController {
             return $this->posts->$var_name;
         }
         else{
-            ?><div class="errors"><?php
-               echo "$var_name is not set<br/>\n";
-            ?></div><?php
+            $this->_make_error($var_name.' is not set');
             exit;
         }
     }
@@ -182,11 +194,10 @@ class AppController {
         }
     }
     
-    function _make_error($str){
-        ?><div class="errors"><?php
-        echo $str;
-        ?></div><?php
-        exit;
+    function _make_error($str, $exit = true){
+        $return = '<div class="errors">'.$str.'</div>';
+        if($exit) exit($return);
+        return $return;
     }
 }
 

@@ -150,9 +150,7 @@ class App {
         
         //Bring the variables to the global scope
         $vars = $controllerName->getAll();
-        foreach($vars as $key=>$variable){
-            $$key = $variable;
-        }
+        extract($vars); //load all variables into local scope
         $cwd = dirname(__FILE__);
         if(App::get('view')){
             $template_file = $cwd.'/../view/'.App::get('view').'/'.App::get('method').'.stp';

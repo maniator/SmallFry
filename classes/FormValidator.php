@@ -94,20 +94,22 @@
           return $this->error_hash;
       }
       
-      function ValidateForm()
+      function ValidateForm($form_local = null)
       {
           $bret = true;
           
           $error_string = "";
           $error_to_display = "";
           
-          
-          if (strcmp($_SERVER['REQUEST_METHOD'], 'POST') == 0) {
+          if(is_array($form_local)){
+              $form_variables = $form_local;
+          }
+          else if (strcmp($_SERVER['REQUEST_METHOD'], 'POST') == 0) {
               $form_variables = $_POST;
           } else {
               $form_variables = $_GET;
           }
-          
+                    
           $vcount = count($this->validator_array);
           
           
