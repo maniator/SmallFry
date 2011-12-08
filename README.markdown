@@ -1,6 +1,15 @@
 SmallFry PHP Library
 ==
 
+###Configuration:
+Put all configuration into in the `/config/app_config.php` file
+
+To add something to the configuration you can do:
+
+		App::set('CONFIG_VARIABLE', 'VALUE');
+Later in your app you can use that configurtion variable by doing:
+		App::get('CONFIG_VARIABLE');
+
 ###Controller:
 Put all controllers in the `/controller` folder
 
