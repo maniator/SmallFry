@@ -35,7 +35,7 @@ This will display to the user when they go to `http://localhost/index.php/Test/i
 
 		hello there
 
-		
+		 
 ###MySQL:
 Inside of the controller class you can do mysql queries  
 The object to use is `$this->_mysql` which is a mysqli object with some extended functions.  
