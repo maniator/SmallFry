@@ -7,7 +7,7 @@ Put all configuration into in the `/config/app_config.php` file
 To add something to the configuration you can do:
 
 		App::set('CONFIG_VARIABLE', 'VALUE');
-Later in your app you can use that configurtion variable by doing:
+Later in your app you can use that configuration variable by doing:
 
 		App::get('CONFIG_VARIABLE');
 
