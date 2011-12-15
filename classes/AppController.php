@@ -168,17 +168,28 @@ class AppController {
     }
     
     protected function _getPosts(){
-                
+        
         if(!(!isset($_POST) || count($_POST) == 0)){
-            foreach($_POST as $key=>$post){
-                $this->posts[$key] = $post;
+            foreach($_POST as $key=>&$post){
+                $this->posts[$key] = $this->_mres($post); //escape all randomness
             }
         }
         
     }
     
+    protected function _mres($q) {
+        if(is_array($q)) {
+            foreach($q as $k => $v) {
+                $q[$k] = $this->_mres($v); //recurse into array
+            }
+        }
+        elseif(is_string($q))   {
+            $q = $this->_mysql->real_escape_string($q);
+        }
+        return $q;
+    }
+    
     function __get($var_name){
-//        echo $var_name."<br>";
         if(isset($this->posts->$var_name)){
             return $this->posts->$var_name;
         }
