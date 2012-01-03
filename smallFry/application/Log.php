@@ -30,9 +30,9 @@ class Log {
 //        echo 'past is_dir'.PHP_EOL;
 
         $logs = scandir($file);
-        $this->_logFile = $file."\GTSA_{$this->_logType}.log";
+        $this->_logFile = $file."\SmallFry_{$this->_logType}.log";
 //        echo $this->_logFile.PHP_EOL;
-        if(in_array("GTSA_{$this->_logType}.log",$logs)){
+        if(in_array("SmallFry_{$this->_logType}.log",$logs)){
 //            echo 'in_array'.PHP_EOL;
             $this->_fileWriter = fopen($this->_logFile, 'a') or die("can't append to {$this->_logFile} ".  print_r(error_get_last(), true));
         }
