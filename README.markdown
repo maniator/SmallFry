@@ -21,7 +21,7 @@ An example of a controller called `Test`:
 			
 			//pages go here
 			function index(){
-				$this->set('test', 'hello there');
+				$this->_template->set('test', 'hello there');
 			}
 		}
 ###Views:
