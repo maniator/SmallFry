@@ -21,7 +21,7 @@ class AppController {
     /**
      *
      * @param SessionManager $SESSION
-     * @return void 
+     * @param  MySQL $MYSQL
      */
     public function __construct(SessionManager $SESSION, MySQL $MYSQL) {
         
@@ -35,7 +35,6 @@ class AppController {
             $this->_session->set(strtolower($this->name), array());
         }
         
-        return;
     }
     
     /**
