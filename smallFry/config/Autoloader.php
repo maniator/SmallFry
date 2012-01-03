@@ -34,8 +34,6 @@ function class_autoloader($class) {
        }
    }
    
-  //trigger_error("The class '$class' or the file '$theClass' failed to spl_autoload ", E_USER_WARNING);
-
   return FALSE;
 }
 

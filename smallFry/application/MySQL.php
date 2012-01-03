@@ -115,16 +115,9 @@ class MySQL extends mysqli  {
     }
     
     function start_transaction(){
-        if(!isset($this->tranaction_started)){
-            $this->tranaction_started = false;
-        }
-        
-        if(!$this->tranaction_started){
-            $this->tranaction_started = true;
             $this->autocommit(FALSE);
             /* @var $query mysqli_result */
             $query = $this->query("START TRANSACTION");
-        }
     }
     
     /**
@@ -133,7 +126,6 @@ class MySQL extends mysqli  {
      */
     function rollback(){
         $rb = parent::rollback();
-        $this->tranaction_started = false;
         return $rb;
     }
     
@@ -143,7 +135,6 @@ class MySQL extends mysqli  {
      */
     function commit(){
         $cm = parent::commit();
-        $this->tranaction_started = false;
         return $cm;
     }
         
