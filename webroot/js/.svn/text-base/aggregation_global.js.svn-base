@@ -1,0 +1,70 @@
+$(function(){
+        
+    var agg_table = $('#aggregationTable');
+    //LINE BY LINE EDITS    
+    (function(rows){
+        rows.each(function(i, item){
+            var tr = $(item),
+                open = tr.children('.open').eq(0),
+                id = open.data('id'),
+                name = open.data('name');
+                
+            tr.popupForm({
+                popupClass: 'popup_div_aggr',
+                dialogOptions: {
+                    title: 'Editing Agg Unit for Engine ' + name,
+                    width: 550,
+                    position: 'center',
+                    beforeClose: function () {
+                        tr.css({
+                            backgroundColor: tr.data('currentColor')
+                        });
+                        $(this).remove();
+                    },
+                    buttons: {
+                        Edit: function () {
+                            var div = $('.popup_div_aggr');
+                            $('.disabled', div).removeAttr('disabled')
+                        },
+                        Delete: function () {
+                            var div = $('.popup_div_aggr');
+                            if (confirm("Are you sure you want to delete the agg unit for " + name + "?")) {
+                                $.get(WEBROOT + 'index.php/AggregationUnit/delete/' + id, function (ret_data) {
+                                    if ($.trim(ret_data) == 'deleted') {
+                                        alert('Deleted agg unit for ' + name + '!');
+                                        var agg_unit_popup = $('#agg_units_popup');
+                                        if(agg_unit_popup.length){
+                                            agg_unit_popup.load(agg_unit_popup.data('url_to_load'));
+                                        }
+                                        else {
+                                            window.location.reload();
+                                        }
+                                        div.dialog('close');
+                                    } else {
+                                        $('.errors', div).remove();
+                                        div.prepend(ret_data);
+                                    }
+                                });
+                            }
+                        }
+                    }
+                },
+                actionOnClick: function(){
+                    tr.data('current-color', tr.css('backgroundColor')).css({
+                        backgroundColor: '#ccc'
+                    });
+                },
+                controller: 'AggregationUnit',
+                view: 'edit/'+id
+            });
+        });
+    })($('.open', agg_table).parent('tr'));
+    //END LINE BY LINE EDITS
+    
+    
+    $('.add-unit').popupForm({
+        controller: 'AggregationUnit',
+        view: 'add/'+$('.add-unit').data('engineName'),
+        popupClass: 'popup_div_aggr'
+    });
+});
