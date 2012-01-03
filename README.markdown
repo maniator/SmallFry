@@ -51,6 +51,6 @@ For example:
 				while($row = $this->_mysql->get_row($result)){
 					$rows[] = $row;
 				}
-				$this->_template->set('rows', $row); //for use in the view
+				$this->_template->set('rows', $rows); //for use in the view
 			}
 		}
