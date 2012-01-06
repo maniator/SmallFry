@@ -6,10 +6,19 @@ ini_set('error_log', dirname(__FILE__) . '/error_log.txt');
 error_reporting(E_ALL);
 //END DEBUG ERROR REPORTING*/
 
-include './smallFry/config/Autoloader.php';
+include 'smallFry/config/Autoloader.php';
+
+//DATABASE INFO
+Config::set('DB_INFO', array(
+    'host' => '',
+    'login' => '',
+    'password' => '',
+    'database' => '',
+));
+//END DATABASE INFO
 
 //DEFAULT TEMPLATE
-Config::set('APP_NAME', 'SmallVC');
+Config::set('APP_NAME', 'SmallFry');
 //END DEFAULT TEMPLAT
 //
 //DEFAULT TEMPLATE
@@ -17,14 +26,14 @@ Config::set('DEFAULT_TEMPLATE', 'default');
 //END DEFAULT TEMPLATE
 
 //DEFAULT TITLE
-Config::set('DEFAULT_TITLE', 'Small-VC');
+Config::set('DEFAULT_TITLE', 'SmallFry App');
 //END DEFAULT TITLE
 
 //LOGIN SEED
-Config::set('LOGIN_SEED', "lijfg98u5;jfd7hyf");
+Config::set('LOGIN_SEED', "ghlkjhgk;hjkiuo");
 //END LOGIN SEED
 
-Config::set('DEFAULT_CONTROLLER', 'AppController');
+Config::set('DEFAULT_CONTROLLER', 'AppController'); //Remember to set this!
 
 
 //LOAD BOOTSTRAP

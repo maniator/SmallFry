@@ -13,11 +13,6 @@ Class Bootstrap {
     private $_session;
     /**
      *
-     * @var MySQL
-     */
-    private $_mysql;
-    /**
-     *
      * @var stdClass
      */
     private $_path;
@@ -36,25 +31,25 @@ Class Bootstrap {
         Config::set('page_title', Config::get('DEFAULT_TITLE'));
         Config::set('template', Config::get('DEFAULT_TEMPLATE'));
         $this->_session = new SessionManager(Config::get('APP_NAME'));
-        $this->_mysql = Database::getConnection();
-        $this->_path = $this->read_path();
+        $this->_path = $this->readPath();
         $this->_controller = $this->loadController();
         $this->_template = new Template($this->_path, $this->_session, $this->_controller); //has destructor that controls it
-        $this->_controller->display_page($this->_path->args);   //run the page for the controller
+        $this->_controller->displayPage($this->_path->args);   //run the page for the controller
+        $this->_template->renderTemplate(); //only render template after all is said and done
     }
     
     /**
      *
      * @return stdClass
      */
-    private function read_path(){
+    private function readPath(){
         $path = isset($_SERVER["PATH_INFO"])?$_SERVER["PATH_INFO"]:'/'.Config::get('DEFAULT_CONTROLLER');
 
         $path_info = explode("/",$path);
         $page = (isset($path_info[2]) && strlen($path_info[2]) > 0)?$path_info[2]:'index';
         list($page, $temp) = explode('.', $page) + array('index', null);
         $args = array_slice($path_info, 3);
-        $controller = $path_info[1]?:Config::get('DEFAULT_CONTROLLER');
+        $controller = $path_info[1] ?: Config::get('DEFAULT_CONTROLLER');
         return (object) array(
             'path_info'=>$path_info,
             'page'=>$page,
@@ -88,9 +83,9 @@ Class Bootstrap {
     /**
      * @return AppController
      */
-    private function create_controller($controllerName){
-        if (class_exists($controllerName)) {  
-            $app_controller  = new $controllerName($this->_session, $this->_mysql); 
+    private function create_controller($controllerName) {
+        if (class_exists($controllerName) && is_subclass_of($controllerName, 'AppController')) {  
+            $app_controller  = new $controllerName($this->_session); 
         } else {
             //show nothing 
             header("HTTP/1.1 404 Not Found");

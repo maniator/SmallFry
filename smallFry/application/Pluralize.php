@@ -8,6 +8,9 @@
  */
 class Pluralize 
 {
+    
+    public function __construct(){}
+    
     public static function conditionallyPluralize( $string, $count )
     {
         if ( intval( $count ) !== 0 )

@@ -6,7 +6,7 @@
  */
 class Template {
     
-    protected $template_vars = array();
+    protected $templateVariables = array();
     
     public function __construct(stdClass $PATH, SessionManager $SESSION, AppController $CONTROLLER) {
         $this->_path = $PATH;
@@ -16,70 +16,66 @@ class Template {
         $this->_controller->init();
     }
     
-    private function render_template(){        
+    public function renderTemplate(){        
         //LOAD VIEW
         ob_start();
-        $this->load_view();
+        $this->loadView();
         //END LOAD VIEW
         
         //LOAD TEMPLATE
         $main = ob_get_clean();
         Config::set('main', $main);
-        $this->load_template();
+        $this->loadTemplate();
         //END LOAD TEMPLATE
     }
     
     
-    private function load_template(){
+    private function loadTemplate(){
         
-        $page_title = $this->get('title')?$this->get('title'):Config::get('DEFAULT_TITLE');
+        $page_title = $this->get('title') ? $this->get('title') : Config::get('DEFAULT_TITLE');
         //display output
-        $cwd = dirname(__FILE__);
-        $template_file = $cwd.'/../../view/'.Config::get('template').'.stp';
+        $template_file = 'view/' . Config::get('template') . '.stp';
 
         if(is_file($template_file)){
             include $template_file;
         }
         else {
-            include $cwd.'/../../view/missingfile.stp'; //no such file error
+            include 'view/missingfile.stp'; //no such file error
         }
+        
     }
     
-    private function load_view(){        
-        
-        //Bring the variables to the global scope
-        extract($this->getAll()); //load all variables into local scope
-        $cwd = dirname(__FILE__);
+    private function loadView(){        
+
+        //Bring the variables to the local scope
+        extract($this->getAll(), EXTR_SKIP); //load all variables into local scope (dont overwrite variables in scope)
+
         if(Config::get('view')){
-            $template_file = $cwd.'/../../view/'.Config::get('view').'/'.Config::get('method').'.stp';
+            $template_file = 'view/' . Config::get('view') . '/' . Config::get('method') . '.stp';
             if(is_file($template_file)){
                 include $template_file;
             }
             else {
-                include $cwd.'/../../view/missingview.stp'; //no such view error
+                include 'view/missingview.stp'; //no such view error
             }
         }
         else {
             Config::set('template', 'blank');
-            include $cwd.'/../../view/missingfunction.stp'; //no such function error
+            include 'view/missingfunction.stp'; //no such function error
         }
+        
     }
     
     public function get($v){
-        return isset($this->template_vars[$v])?$this->template_vars[$v]:false;
+        return isset($this->templateVariables[$v]) ? $this->templateVariables[$v] : false;
     }
     
     public function set($v, $va){
-        return $this->template_vars[$v] = $va;
+        return $this->templateVariables[$v] = $va;
     }
     
     public function getAll(){
-        return $this->template_vars;
+        return $this->templateVariables;
     }
     
-    
-    public function __destruct() {
-        $this->render_template();
-    }
 }
-

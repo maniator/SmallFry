@@ -1,4 +1,5 @@
 <?php
+//echo "<pre>";
 date_default_timezone_set('America/New_York');
 
 //DEFINE ROOTS

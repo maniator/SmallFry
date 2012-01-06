@@ -15,6 +15,9 @@ class SessionManager {
      */
     function __construct($appName = 'App') {
         $this->app_name = $appName;
+        if(!isset($_SESSION[$this->app_name])){
+            $_SESSION[$this->app_name] = array();
+        }
         $this->loadSession();
     }
     

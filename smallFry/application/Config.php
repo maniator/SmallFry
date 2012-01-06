@@ -11,40 +11,40 @@ class Config {
      * Holds all of the app variables
      * @var array
      */
-    private static $app_vars = array();
+    private static $configVariables = array();
     
     /**
-     * Get a single app_vars variable
+     * Get a single configVariables variable
      * @param string $v
      * @return mixed 
      */
     public static function get($v){
-        return isset(self::$app_vars[$v])?self::$app_vars[$v]:false;
+        return isset(self::$configVariables[$v]) ? self::$configVariables[$v] : false;
     }
     
     /**
-     * Get all app_vars variables
-     * @return array app_vars
+     * Get all configVariables variables
+     * @return array configVariables
      */
     public static function getAll(){
-        return self::$app_vars;
+        return self::$configVariables;
     }
     
     /**
-     * Set an app_vars variable
+     * Set an configVariables variable
      * 
      * @param string $v
      * @param mixed $va
      * @return mixed
      */
     public static function set($v, $va){
-        return self::$app_vars[$v] = $va;
+        return self::$configVariables[$v] = $va;
     }
     
     /**
-     * Clean up the app_vars variable
+     * Clean up the configVariables variable
      */
     public static function clean(){
-        self::$app_vars = array();
+        self::$configVariables = array();
     }
 }

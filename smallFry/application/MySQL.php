@@ -8,7 +8,7 @@
 class MySQL extends mysqli  {
     
     private $_result;    
-    
+    private $_last_query = null;
     /**
      * Start a mysqli connection
      * @param string $server
@@ -46,8 +46,7 @@ class MySQL extends mysqli  {
      * @param mysqli_result $result
      * @return mixed 
      */
-    function get_row($result = null)   {
-        
+    function get_row($result = null, $fetchby = MYSQLI_BOTH)   {
         if($result == null){
             $result = $this->_result;
         }
@@ -56,14 +55,30 @@ class MySQL extends mysqli  {
             return $this->get_bound_row($result);
         }
         else {
-//            var_dump($result);
-            if($result && $row = $result->fetch_array())  {
-                return $row;
+            switch($fetchby){
+                case MYSQLI_ASSOC: {
+                    if($result && $row = $result->fetch_assoc())  {
+                        return $row;
+                    }
+                    break;
+                }
+                case MYSQLI_NUM: {
+                    if($result && $row = $result->fetch_array(MYSQLI_NUM))  {
+                        return $row;
+                    }
+                    break;
+                }
+                case MYSQLI_BOTH:
+                default: {
+                    if($result && $row = $result->fetch_array())  {
+                        return $row;
+                    }
+                    break;
+                }
             }
-            elseif($result != null)  {
+            if($result != null)  {
                 $result->free();
             }
-
             return false;
         }
     }
@@ -109,15 +124,17 @@ class MySQL extends mysqli  {
     function get_last_error($show_error = true)   {
         $error = $this->error;
         if($show_error){
-            $error . "<pre>\nQuery:\n" . $this->_last_query . "</pre>";
+            $error .= "<pre>\nQuery:\n" . $this->_last_query . "</pre>";
         }
         return $error;
     }
     
     function start_transaction(){
-            $this->autocommit(FALSE);
-            /* @var $query mysqli_result */
-            $query = $this->query("START TRANSACTION");
+
+        $this->autocommit(FALSE);
+        /* @var $query mysqli_result */
+        $query = $this->query("START TRANSACTION");
+        
     }
     
     /**

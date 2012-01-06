@@ -21,7 +21,7 @@ An example of a controller called `Test`:
 			
 			//pages go here
 			function index(){
-				$this->_template->set('test', 'hello there');
+				$this->template->set('test', 'hello there');
 			}
 		}
 ###Views:
@@ -36,21 +36,44 @@ This will display to the user when they go to `http://localhost/index.php/Test/i
 		hello there
 
 		 
-###MySQL:
+###MySQL and Models:
 Inside of the controller class you can do mysql queries  
-The object to use is `$this->_mysql` which is a mysqli object with some extended functions.  
+The object to use is `$this->ModelName` which is the model that handles all database queries.
 
-For example:
+For example (a raw mysql example):
 
 		class TestController extends AppController {
 			var $name = 'Test';
 			
 			function index(){
 				$rows = array();
-				$result = $this->_mysql->run_query('SELECT * FROM TABLE');
-				while($row = $this->_mysql->get_row($result)){
+				$results = $this->Test->queryit('SELECT * FROM TABLE'); // one way to use a model to query the database
+				foreach($results as $row) {
 					$rows[] = $row;
 				}
-				$this->_template->set('rows', $rows); //for use in the view
+				$this->template->set('rows', $rows); //for use in the view
+			}
+		}
+		
+In order to use the following exampke you have to create a `Model` that goes with the current controller in the `model` directory:
+
+		class Test extends AppModel {
+
+		}
+		
+This model will query from the `tests` table if one is **not** doing raw MySQL statements.
+
+This example selects all records from the `tests` table in the database:
+
+		class TestController extends AppController {
+			var $name = 'Test';
+			
+			function index(){
+				$rows = array();
+				$results = $this->Test->selectAll();
+				foreach($results as $row) {
+					$rows[] = $row;
+				}
+				$this->template->set('rows', $rows); //for use in the view
 			}
 		}
