@@ -14,7 +14,7 @@ class Pluralize
     public static function conditionallyPluralize( $string, $count )
     {
         if ( intval( $count ) !== 0 )
-            return MyClass::pluralize( $string );
+            return self::pluralize( $string );
 
         return $string; 
     }
