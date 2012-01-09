@@ -2,7 +2,7 @@
 /**
  * Description of Pluralize
  * 
- * Not used yet...
+ * Main crux of the code from here: http://paulosman.me/2007/03/03/php-pluralize-method.html
  * 
  * @author nlubin
  */
