@@ -4,6 +4,7 @@ date_default_timezone_set('America/New_York');
 
 //DEFINE ROOTS
 define('WEBROOT', 'http://localhost/');
+define('INDEX', 'index.php/');
 define('DOCROOT', '/var/www/html/');
 define('SCRIPTROOT', WEBROOT."webroot/");
 //END DEFINE ROOTS
@@ -27,7 +28,6 @@ function class_autoloader($class) {
    
    foreach($folders as $folder){
        foreach($directories as $directory){
-//           $theInclude = $dir.$folder.$directory.$theClass;
            $theInclude = $include_path.$folder.$directory.$theClass;
            if (file_exists($theInclude) && include_once($theInclude)) {
               return TRUE;

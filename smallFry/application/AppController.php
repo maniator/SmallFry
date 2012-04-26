@@ -109,7 +109,7 @@ class AppController {
      * @return string 
      */
     protected function getErrorPage($msg = null)    {
-        $err = '<span class="error">%s</span>';
+        $err = '<div class="error errors">%s</div>';
         return sprintf($err, $msg);
     }
     
@@ -127,7 +127,7 @@ class AppController {
     
     protected function logout(){
         session_destroy();
-        header('Location: '.WEBROOT.'index.php');
+        header('Location: '.WEBROOT.INDEX);
         exit;
     }
     
@@ -175,6 +175,11 @@ class AppController {
         $return = $this->getErrorPage(nl2br($str));
         if($exit) exit($return);
         return $return;
+    }
+    
+    protected function killPage(){ //Throw a 404 for the page
+        header("HTTP/1.1 404 Not Found");
+        exit;
     }
 }
 

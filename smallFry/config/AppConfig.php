@@ -6,6 +6,13 @@ ini_set('error_log', dirname(__FILE__) . '/error_log.txt');
 error_reporting(E_ALL);
 //END DEBUG ERROR REPORTING*/
 
+function flush_buffers(){
+    ob_end_flush();
+    ob_flush();
+    flush();
+    ob_start();
+}
+
 include 'smallFry/config/Autoloader.php';
 
 //DATABASE INFO

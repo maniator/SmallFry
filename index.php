@@ -1,3 +1,3 @@
 <?php
-include_once './config/app_config.php';
+include_once './smallFry/config/AppConfig.php';
 ?>

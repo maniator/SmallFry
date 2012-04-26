@@ -22,25 +22,19 @@ class Log {
 
     function startLog() {
         $file = $this->_dirLevel."logs\\".date("Y_m_d");
-//        echo $file.PHP_EOL;
         if(!is_dir($file)){
-//            echo 'IN !is_dir'.PHP_EOL;
             mkdir($file);
         }
-//        echo 'past is_dir'.PHP_EOL;
 
         $logs = scandir($file);
-        $this->_logFile = $file."\GTSA_{$this->_logType}.log";
-//        echo $this->_logFile.PHP_EOL;
-        if(in_array("GTSA_{$this->_logType}.log",$logs)){
-//            echo 'in_array'.PHP_EOL;
+        $this->_logFile = $file."\smallFry_{$this->_logType}.log";
+        if(in_array("smallFry_{$this->_logType}.log",$logs)){
             $this->_fileWriter = fopen($this->_logFile, 'a') or die("can't append to {$this->_logFile} ".  print_r(error_get_last(), true));
         }
         else {
 //            echo 'not in_array '.PHP_EOL;
             $this->_fileWriter = fopen($this->_logFile, 'w') or die("can't create {$this->_logFile}");
         }
-//        echo 'returning'.PHP_EOL.$this->_fileWriter.PHP_EOL;
     }
 
     private function setTime($asString = true){
@@ -51,7 +45,6 @@ class Log {
     }
 
     function logToFile($msg, $lvl = 2){
-//        echo 'logging to file: '.$msg.PHP_EOL;
         $highestLvl = $this->_logLevel;
         $this->setTime();
 
@@ -64,10 +57,8 @@ class Log {
         }
 
         if($lvl <= $highestLvl){
-//            echo 'ACTUALLY LOGGING'.PHP_EOL. $this->_fileWriter.PHP_EOL;
             fwrite($this->_fileWriter, "[$this->_time {$display_level} $this->_user] $msg $this->_eol") or die("ERROR WRITING TO FILE");
         }
-//        echo 'OUT OF LOG'.PHP_EOL;
         if($lvl <= 0 && $lvl != -2){
             die("<pre>$msg</pre>");
         }

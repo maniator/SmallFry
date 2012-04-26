@@ -43,13 +43,16 @@ Class Bootstrap {
      * @return stdClass
      */
     private function readPath(){
+        if(!isset($_SERVER["PATH_INFO"])){ //if there is no path, make one
+            header('Location: ' . WEBROOT . INDEX . '/');
+            exit;
+        }
         $path = isset($_SERVER["PATH_INFO"])?$_SERVER["PATH_INFO"]:'/'.Config::get('DEFAULT_CONTROLLER');
-
         $path_info = explode("/",$path);
         $page = (isset($path_info[2]) && strlen($path_info[2]) > 0)?$path_info[2]:'index';
         list($page, $temp) = explode('.', $page) + array('index', null);
         $args = array_slice($path_info, 3);
-        $controller = $path_info[1] ?: Config::get('DEFAULT_CONTROLLER');
+        $controller = $path_info[1] ? $path_info[1] : Config::get('DEFAULT_CONTROLLER');
         return (object) array(
             'path_info'=>$path_info,
             'page'=>$page,
@@ -82,6 +85,7 @@ Class Bootstrap {
    
     /**
      * @return AppController
+     * @assert (AppController)
      */
     private function create_controller($controllerName) {
         if (class_exists($controllerName) && is_subclass_of($controllerName, 'AppController')) {  
@@ -103,10 +107,14 @@ Class Bootstrap {
         $file_name = $path_info[count($path_info) - 1];
 
         $file = DOCROOT."webroot/".$rewrite."/".$file_name;
-        include DOCROOT.'/smallFry/functions/mime_type.php'; // needed for setups without `mime_content_type`
-        header('Content-type: '.mime_content_type($file));
-        readfile($file);
-        
+        if(is_file($file)){ //if the file is a real file
+            include DOCROOT.'/smallFry/functions/mime_type.php'; // needed for setups without `mime_content_type`
+            header('Content-type: '.mime_content_type($file));
+            readfile($file);
+        }
+        else {
+            header("HTTP/1.1 404 Not Found");
+        }
         exit;
     }
 }

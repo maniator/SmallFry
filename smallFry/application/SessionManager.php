@@ -14,6 +14,9 @@ class SessionManager {
      * @param string $appName 
      */
     function __construct($appName = 'App') {
+        if(!isset($_SESSION)){
+            session_start();
+        }
         $this->app_name = $appName;
         if(!isset($_SESSION[$this->app_name])){
             $_SESSION[$this->app_name] = array();
@@ -22,10 +25,7 @@ class SessionManager {
     }
     
     private function loadSession(){
-        if(!isset($_SESSION)){
-            session_start();
-        }
-        $this->_sess_variables = $_SESSION[$this->app_name] ?: array();
+        $this->_sess_variables = $_SESSION[$this->app_name] ? $_SESSION[$this->app_name] : array();
     }
     
     /**
@@ -50,8 +50,13 @@ class SessionManager {
         return $this->_false;
     }
 
+    function showSession(){
+        return $this->_sess_variables;
+    }
+    
     function clear() {
        $this->_sess_variables = array();
+       $this->saveSession();
     }
     
     function saveSession(){
