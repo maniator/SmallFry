@@ -55,7 +55,7 @@ For example (a raw mysql example):
 			}
 		}
 		
-In order to use the following exampke you have to create a `Model` that goes with the current controller in the `model` directory:
+In order to use the following example you have to create a `Model` that goes with the current controller in the `model` directory:
 
 		class Test extends AppModel {
 
