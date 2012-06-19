@@ -85,7 +85,7 @@ class AppController {
         else    {
             if(Config::get('view') == strtolower(__CLASS__) || 
                     !in_array($this->pageOn, $public_methods)){
-                /* echo "404'd here".get_class($this)."|".__LINE__."|".__CLASS__; exit; */header("HTTP/1.1 404 Not Found");
+                header("HTTP/1.1 404 Not Found");
             }
             else {
                 Config::set('method', '../missingfunction'); //don't even allow trying the page
