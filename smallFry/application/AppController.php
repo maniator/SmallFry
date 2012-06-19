@@ -25,9 +25,7 @@ class AppController {
         $this->session = $SESSION;
         $model_name = $this->name;
         if(class_exists($model_name) && is_subclass_of($model_name, 'AppModel')){
-            /**
-             * @var AppModel $model_name
-             */
+            /**  @var AppModel $this->$model_name */
             $this->$model_name = new $model_name();
         }
         else {
@@ -87,7 +85,7 @@ class AppController {
         else    {
             if(Config::get('view') == strtolower(__CLASS__) || 
                     !in_array($this->pageOn, $public_methods)){
-                header("HTTP/1.1 404 Not Found");
+                /* echo "404'd here".get_class($this)."|".__LINE__."|".__CLASS__; exit; */header("HTTP/1.1 404 Not Found");
             }
             else {
                 Config::set('method', '../missingfunction'); //don't even allow trying the page
@@ -127,7 +125,7 @@ class AppController {
     
     protected function logout(){
         session_destroy();
-        header('Location: '.WEBROOT.INDEX);
+        header('Location: '.WEBROOT.'index.php');
         exit;
     }
     

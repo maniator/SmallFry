@@ -42,6 +42,9 @@ Config::set('LOGIN_SEED', "ghlkjhgk;hjkiuo");
 
 Config::set('DEFAULT_CONTROLLER', 'AppController'); //Remember to set this!
 
+//DEBUG FLAGS
+Config::set('DEBUG_MODE', false);
+Config::set('DEBUG_QUERIES', false);
 
 //LOAD BOOTSTRAP
 $boot = new Bootstrap();

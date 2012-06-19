@@ -26,13 +26,21 @@ class AppModel extends SQLQuery {
      */
     protected $using;
     
-    function __construct($USEDBY = null, $DB_INFO = null) {
+    function __construct($USEDBY = null, $DB_INFO = null, $SECONDARY_DB_INFO = null) {
+        $this->modelName = get_class($this);
+        $this->modelTable = strtolower(Pluralize::pluralize($this->modelName));
+        
+        //Primary db connection
         $database_info = ($DB_INFO === null)?Config::get('DB_INFO'):$DB_INFO;
         $this->connect($database_info['host'], $database_info['login'], 
                                $database_info['password'], $database_info['database']);
-        $this->modelName = get_class($this);
-        $this->modelTable = strtolower(Pluralize::pluralize($this->modelName));
-        $this->modelColumns = $this->getColumnNames();
+        
+        //Secondary db connection
+        $database_info = ($SECONDARY_DB_INFO === null)?Config::get('SECONDARY_DB_INFO'):$SECONDARY_DB_INFO;
+        $this->connect($database_info['host'], $database_info['login'], 
+                               $database_info['password'], $database_info['database'], true);
+        $this->useSecondaryHandle(false);
+        
         $this->usedBy = $USEDBY; 
         $this->parsePosts();
         $this->setUpUsing();
@@ -40,17 +48,34 @@ class AppModel extends SQLQuery {
     }
 
     function init() {}
-
     
-    protected function setUpUsing(){
+    public final function getUsedBy(){
+        return $this->usedBy;
+    }
+    
+    protected final function setUpUsing()   {
         /** Using Models **/
         if(is_array($this->using)){
             foreach($this->using as $usingModel){
-                if(is_array($this->usedBy) && $usingModel === $this->usedBy['name']){
-                    $this->$usingModel = $this->usedBy['model'];    //use existing object
+                $used = false;
+                if(is_array($this->usedBy)){
+                    $usedByModel = $this->usedBy['model']->getUsedBy();
+                    
+                    if($usingModel === $this->usedBy['name']) {
+                        $this->$usingModel = $this->usedBy['model'];    //use existing object
+                        $used = true;
+                    }
+                    elseif(is_array($usedByModel)) {
+                        if($usingModel === $usedByModel['name'])    {
+                            $this->$usingModel = $usedByModel['model'];    //use existing object
+                            $used = true;
+                        }
+                    }
                 }
-                elseif(class_exists($usingModel) 
-                        && is_subclass_of($usingModel, 'AppModel')){
+                
+                if(class_exists($usingModel) 
+                        && is_subclass_of($usingModel, 'AppModel')
+                        && !$used){
                     /**
                      * @var AppModel $usingModel
                      */
@@ -62,31 +87,29 @@ class AppModel extends SQLQuery {
             }
         }
     }
-    function setModelTable($tableName){
+    public final function setModelTable($tableName){
         $this->modelTable = $tableName;
         $this->modelColumns = $this->getColumnNames();
     }
     
-    function getMySQLObject(){
+    public final function getMySQLObject(){
         return $this->dbHandle;
     }
     
-    public function getPosts(){
+    public final function getPosts(){
         return $this->posts;
     }
     
-    public function getModelColumns(){
-//        echo "CLASS (getting columns): ".get_class($this).PHP_EOL;
-        return $this->modelColumns;
+    public final function getModelColumns($modelName = false){
+        if($modelName)  return $this->getColumnNames (true, false, $modelName);
+        else    return $this->modelColumns;
     }
     
-    public function getModelTable(){
-//        echo "CLASS (getting table): ".get_class($this).PHP_EOL;
-//        echo "CLASS (model table): ".$this->modelTable.PHP_EOL;
-        return $this->modelTable;
+    public final function getModelTable(){
+        return sprintf("`%s`.`%s`", $this->dbName, $this->modelTable);
     }
     
-    protected function parsePosts(){
+    protected final function parsePosts(){
         
         if(!(!isset($_POST) || count($_POST) == 0)){
             foreach($_POST as $key=>&$post){
@@ -97,7 +120,7 @@ class AppModel extends SQLQuery {
         
     }
     
-    protected function realEscapeObject($q) {
+    protected final function realEscapeObject($q) {
         if(is_array($q)) {
             foreach($q as $k => $v) {
                 $q[$k] = $this->realEscapeObject($v); //recurse into array
@@ -109,7 +132,7 @@ class AppModel extends SQLQuery {
         return $q;
     }
     
-    public function camelToWords($str){
+    public final function camelToWords($str){
         return ucwords(preg_replace('/(?!^)[[:upper:]][[:lower:]]/', ' $0', preg_replace('/(?!^)[[:upper:]]+/', ' $0', $str)));
     }
     
