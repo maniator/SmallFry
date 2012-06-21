@@ -7,7 +7,7 @@ Put all configuration into in the `/smallFry/config/AppConfig.php` file and set 
 To add something to the configuration you can do:
 
 		$CONFIG->set('CONFIG_VARIABLE', 'VALUE');
-Later in your app (when you are **not** inside of `AppConfig.php` you can use that configuration variable by doing:
+Later in your app (when you are **not** inside of `AppConfig.php`) you can use that configuration variable by doing:
 
 		$this->CONFIG->get('CONFIG_VARIABLE');
 
