@@ -12,10 +12,13 @@ class DebugLogger {
     public static $logTemplate = "<div>DEBUG [%s:%d]: %s </div> \n";
     public static $logs = '';
     public static $echo = false;
+    private static $CONFIG;
     
     public static function init(){  
-        self::$logBool = Config::get('DEBUG_MODE');
+        self::$CONFIG = new Config();
+        self::$logBool = self::$CONFIG->get('DEBUG_MODE');
         self::$logger = new Log($_SERVER['AUTH_USER']);
+        self::$logger->startLog(self::$CONFIG->get('APP_NAME'));
     }
     
     public static function displayLog($msg, $fixed = false, $forceLog = false)  {
@@ -44,3 +47,5 @@ class DebugLogger {
 }
 
 DebugLogger::init();
+
+?>

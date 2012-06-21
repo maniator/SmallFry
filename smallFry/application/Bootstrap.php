@@ -27,13 +27,20 @@ Class Bootstrap {
      */
     private $_template;
     
-    function __construct() {
-        Config::set('page_title', Config::get('DEFAULT_TITLE'));
-        Config::set('template', Config::get('DEFAULT_TEMPLATE'));
-        $this->_session = new SessionManager(Config::get('APP_NAME'));
+    /**
+     *
+     * @var Config
+     */
+    private $CONFIG;
+    
+    function __construct(Config $CONFIG) {
+        $this->CONFIG = $CONFIG;
+        $this->CONFIG->set('page_title', $this->CONFIG->get('DEFAULT_TITLE'));
+        $this->CONFIG->set('template', $this->CONFIG->get('DEFAULT_TEMPLATE'));
+        $this->_session = new SessionManager($this->CONFIG->get('APP_NAME'));
         $this->_path = $this->readPath();
         $this->_controller = $this->loadController();
-        $this->_template = new Template($this->_path, $this->_session, $this->_controller); //has destructor that controls it
+        $this->_template = new Template($this->_path, $this->_session, $this->_controller, $this->CONFIG); //has destructor that controls it
         $this->_controller->displayPage($this->_path->args);   //run the page for the controller
         $this->_template->renderTemplate(); //only render template after all is said and done
     }
@@ -43,16 +50,19 @@ Class Bootstrap {
      * @return stdClass
      */
     private function readPath(){
-        if(!isset($_SERVER["PATH_INFO"])){ //if there is no path, make one
-            header('Location: ' . WEBROOT . INDEX . '/');
-            exit;
-        }
-        $path = isset($_SERVER["PATH_INFO"])?$_SERVER["PATH_INFO"]:'/'.Config::get('DEFAULT_CONTROLLER');
+        $path = isset($_SERVER["PATH_INFO"])?$_SERVER["PATH_INFO"]:'/'.$this->CONFIG->get('DEFAULT_CONTROLLER');
+
         $path_info = explode("/",$path);
         $page = (isset($path_info[2]) && strlen($path_info[2]) > 0)?$path_info[2]:'index';
         list($page, $temp) = explode('.', $page) + array('index', null);
         $args = array_slice($path_info, 3);
-        $controller = $path_info[1] ? $path_info[1] : Config::get('DEFAULT_CONTROLLER');
+        $controller = $path_info[1] ?: $this->CONFIG->get('DEFAULT_CONTROLLER');
+        
+        $this->_session->set('modelRedirect', array(
+            'model' => $controller,
+            'fn' => $page
+        )); //for redirect after login
+        
         return (object) array(
             'path_info'=>$path_info,
             'page'=>$page,
@@ -65,13 +75,13 @@ Class Bootstrap {
      * @return AppController
      */
     private function loadController(){
-        Config::set('page', $this->_path->page);
+        $this->CONFIG->set('page', $this->_path->page);
 
         //LOAD CONTROLLER
         $modFolders = array('images', 'js', 'css');
 
         //load controller
-        if(strlen($this->_path->controller) == 0) $this->_path->controller = Config::get('DEFAULT_CONTROLLER');
+        if(strlen($this->_path->controller) == 0) $this->_path->controller = $this->CONFIG->get('DEFAULT_CONTROLLER');
         
         if(count(array_intersect($this->_path->path_info, $modFolders)) == 0){ //load it only if it is not in one of those folders
             $controllerName = "{$this->_path->controller}Controller";
@@ -89,7 +99,7 @@ Class Bootstrap {
      */
     private function create_controller($controllerName) {
         if (class_exists($controllerName) && is_subclass_of($controllerName, 'AppController')) {  
-            $app_controller  = new $controllerName($this->_session); 
+            $app_controller  = new $controllerName($this->_session, $this->CONFIG); 
         } else {
             //show nothing 
             header("HTTP/1.1 404 Not Found");

@@ -18,7 +18,7 @@ class Config {
      * @param string $v
      * @return mixed 
      */
-    public static function get($v){
+    private static function static_get($v){
         return isset(self::$configVariables[$v]) ? self::$configVariables[$v] : false;
     }
     
@@ -26,7 +26,7 @@ class Config {
      * Get all configVariables variables
      * @return array configVariables
      */
-    public static function getAll(){
+    private static function static_getAll(){
         return self::$configVariables;
     }
     
@@ -37,14 +37,30 @@ class Config {
      * @param mixed $va
      * @return mixed
      */
-    public static function set($v, $va){
+    private static function static_set($v, $va){
         return self::$configVariables[$v] = $va;
     }
     
     /**
      * Clean up the configVariables variable
      */
-    public static function clean(){
+    private static function static_clean(){
         self::$configVariables = array();
+    }  
+    
+    public function get($v){  
+        return self::static_get($v);
+    }
+    
+    public function set($v, $va)    {
+        return self::static_set($v, $va);
+    }
+    
+    public function getAll()    {
+        return self::static_getAll();
+    }
+    
+    public function clean() {
+        return self::static_clean();
     }
 }

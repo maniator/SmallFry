@@ -12,27 +12,25 @@ class Log {
     private $_lvls = array('CRITICAL', 'ERROR', 'INFO', 'DEBUG');
     private $_eol = PHP_EOL;
 
-    function  __construct($user = "NO USER", $logLevel = 2, $dirLevel = '', $logType = 'overnight') {
+    function  __construct($user = "NO USER", $logLevel = 2, $dirLevel = '') {
         $this->_user = $user;
         $this->_logLevel = $logLevel;
-        $this->_logType = $logType;
         $this->_dirLevel = $dirLevel;
-        $this->startLog();
     }
 
-    function startLog() {
+    function startLog($appName = "SmallFry") {
         $file = $this->_dirLevel."logs\\".date("Y_m_d");
+
         if(!is_dir($file)){
             mkdir($file);
         }
 
         $logs = scandir($file);
-        $this->_logFile = $file."\smallFry_{$this->_logType}.log";
-        if(in_array("smallFry_{$this->_logType}.log",$logs)){
+        $this->_logFile = $file."\\".$appName.".log";
+        if(in_array($appName.".log",$logs)){
             $this->_fileWriter = fopen($this->_logFile, 'a') or die("can't append to {$this->_logFile} ".  print_r(error_get_last(), true));
         }
         else {
-//            echo 'not in_array '.PHP_EOL;
             $this->_fileWriter = fopen($this->_logFile, 'w') or die("can't create {$this->_logFile}");
         }
     }
@@ -45,6 +43,7 @@ class Log {
     }
 
     function logToFile($msg, $lvl = 2){
+
         $highestLvl = $this->_logLevel;
         $this->setTime();
 
@@ -59,6 +58,7 @@ class Log {
         if($lvl <= $highestLvl){
             fwrite($this->_fileWriter, "[$this->_time {$display_level} $this->_user] $msg $this->_eol") or die("ERROR WRITING TO FILE");
         }
+
         if($lvl <= 0 && $lvl != -2){
             die("<pre>$msg</pre>");
         }

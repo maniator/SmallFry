@@ -34,7 +34,7 @@ class SQLQuery {
         }
         
         if($handleToUse === null){
-            $handleToUse = new MySQL($address, $account, $pwd, $name);
+            $handleToUse = new MySQL($address, $account, $pwd, $name, $this->CONFIG->get('DEBUG_QUERIES'));
         }
         $this->useSecondaryHandle($secondary);
         if ($handleToUse) {

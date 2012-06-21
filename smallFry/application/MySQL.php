@@ -9,6 +9,7 @@ class MySQL extends mysqli  {
     
     private $_result;    
     private $_last_query = null;
+    private $_debug;
     /**
      * Start a mysqli connection
      * @param string $server
@@ -16,13 +17,15 @@ class MySQL extends mysqli  {
      * @param string $password
      * @param string $dbname 
      */
-    function __construct($server, $username, $password, $dbname)    {
+    function __construct($server, $username, $password, $dbname, $debug = false)    {
         parent::__construct($server, $username, $password, $dbname);
-
+        
         if (mysqli_connect_errno()) {
             printf("Connect failed: %s\n", mysqli_connect_error());
             exit();
         }
+        
+        $this->debug = $debug;
     }
     
     /**
@@ -31,13 +34,13 @@ class MySQL extends mysqli  {
      * @return mysqli_result 
      */
     function run_query($query)  {
-        if(Config::get('DEBUG_QUERIES')) DebugLogger::displayLog($query, true, true);
+        if($this->debug) DebugLogger::displayLog($query, true, true);
         
         $this->_last_query = $query;
         $this->_result = $this->query($query);
         
         if($this->_result)  {
-            if(Config::get('DEBUG_QUERIES')) DebugLogger::displayLog(sprintf("Number of rows: %d ", $this->_result->num_rows), false, true);
+            if($this->debug) DebugLogger::displayLog(sprintf("Number of rows: %d ", $this->_result->num_rows), false, true);
             return $this->_result;
         }
         else    {

@@ -1,3 +1,3 @@
 <?php
-echo "<span class=\"error\">The ".App::get('view').'/'.App::get('method')." template does not exist.</span>"
+echo "<span class=\"error\">The ".$this->CONFIG->get('view').'/'.App::get('method')." template does not exist.</span>"
 ?>

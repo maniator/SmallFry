@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title><?php echo App::get('page_title') ?></title>
+        <title><?php echo $this->CONFIG->get('page_title') ?></title>
     </head>
     <body>
-        <?php print_r(App::get('errors')) ?>
-        <?php echo App::get('main') ?>
+        <?php print_r($this->CONFIG->get('errors')) ?>
+        <?php echo $this->CONFIG->get('main') ?>
     </body>
 </html>

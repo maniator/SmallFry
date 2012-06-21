@@ -11,6 +11,6 @@
 </script>
 </head>
 <body>
-	<?php echo App::get('main') ?>
+	<?php echo $this->CONFIG->get('main') ?>
 </body>
 </html>

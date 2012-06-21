@@ -14,28 +14,29 @@ class AppController {
     protected $session;
     protected $validator;
     protected $template;
+    protected $CONFIG;
     
     /**
      *
      * @param SessionManager $SESSION
      */
-    public function __construct(SessionManager $SESSION) {
-        
-        $this->pageOn = Config::get('page');
+    public function __construct(SessionManager $SESSION, Config $CONFIG) {
+        $this->CONFIG = $CONFIG;
+        $this->pageOn = $this->CONFIG->get('page');
         $this->session = $SESSION;
         $model_name = $this->name;
         if(class_exists($model_name) && is_subclass_of($model_name, 'AppModel')){
             /**  @var AppModel $this->$model_name */
-            $this->$model_name = new $model_name();
+            $this->$model_name = new $model_name(null, $CONFIG);
         }
         else {
             //default model (no database table chosen)
-            $this->$model_name = new AppModel();
+            $this->$model_name = new AppModel(null, $CONFIG);
         }
         /* Get all posts */
         $this->posts = $this->$model_name->getPosts();
         
-        Config::set('view', strtolower($model_name));
+        $this->CONFIG->set('view', strtolower($model_name));
         
         if(!$this->session->get(strtolower($model_name))){
             $this->session->set(strtolower($model_name), array());
@@ -77,19 +78,19 @@ class AppController {
      * @return string 
      */
     public function displayPage($args)  {
-        Config::set('method', $this->pageOn);
+        $this->CONFIG->set('method', $this->pageOn);
         $public_methods = $this->getPublicMethods();
         if(in_array($this->pageOn, $public_methods))    {  
             call_user_func_array(array($this, $this->pageOn), $args);
         }
         else    {
-            if(Config::get('view') == strtolower(__CLASS__) || 
+            if($this->CONFIG->get('view') == strtolower(__CLASS__) || 
                     !in_array($this->pageOn, $public_methods)){
-                /* echo "404'd here".get_class($this)."|".__LINE__."|".__CLASS__; exit; */header("HTTP/1.1 404 Not Found");
+                header("HTTP/1.1 404 Not Found");
             }
             else {
-                Config::set('method', '../missingfunction'); //don't even allow trying the page
-                return($this->getErrorPage(Config::get('view')."/{$this->pageOn} does not exist."));
+                $this->CONFIG->set('method', '../missingfunction'); //don't even allow trying the page
+                return($this->getErrorPage($this->CONFIG->get('view')."/{$this->pageOn} does not exist."));
             }
             exit;
         }

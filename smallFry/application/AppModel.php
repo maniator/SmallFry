@@ -25,21 +25,35 @@ class AppModel extends SQLQuery {
      * @var array 
      */
     protected $using;
+    /**
+     *
+     * @var Config
+     */
+    protected $CONFIG;
     
-    function __construct($USEDBY = null, $DB_INFO = null, $SECONDARY_DB_INFO = null) {
+    function __construct($USEDBY = null, Config $CONFIG) {
+        
+        $this->CONFIG = $CONFIG;
+        
         $this->modelName = get_class($this);
         $this->modelTable = strtolower(Pluralize::pluralize($this->modelName));
         
         //Primary db connection
-        $database_info = ($DB_INFO === null)?Config::get('DB_INFO'):$DB_INFO;
-        $this->connect($database_info['host'], $database_info['login'], 
-                               $database_info['password'], $database_info['database']);
+        $database_info = $this->CONFIG->get('DB_INFO');
+        if($database_info)  {
+            $this->connect($database_info['host'], $database_info['login'], 
+                                   $database_info['password'], $database_info['database']);
+        }
+        else
+            exit("DO NOT HAVE DB INFO SET");
         
         //Secondary db connection
-        $database_info = ($SECONDARY_DB_INFO === null)?Config::get('SECONDARY_DB_INFO'):$SECONDARY_DB_INFO;
-        $this->connect($database_info['host'], $database_info['login'], 
-                               $database_info['password'], $database_info['database'], true);
-        $this->useSecondaryHandle(false);
+        $database_info = $this->CONFIG->get('SECONDARY_DB_INFO');
+        if($database_info)  {
+            $this->connect($database_info['host'], $database_info['login'], 
+                                   $database_info['password'], $database_info['database'], true);
+            $this->useSecondaryHandle(false);
+        }
         
         $this->usedBy = $USEDBY; 
         $this->parsePosts();
@@ -59,6 +73,7 @@ class AppModel extends SQLQuery {
             foreach($this->using as $usingModel){
                 $used = false;
                 if(is_array($this->usedBy)){
+
                     $usedByModel = $this->usedBy['model']->getUsedBy();
                     
                     if($usingModel === $this->usedBy['name']) {
@@ -82,7 +97,7 @@ class AppModel extends SQLQuery {
                     $this->$usingModel = new $usingModel(array(
                         'name' => $this->modelName, 
                         'model' => $this
-                    ));
+                    ), $this->CONFIG);
                 }
             }
         }

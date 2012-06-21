@@ -6,10 +6,10 @@ Put all configuration into in the `/smallFry/config/AppConfig.php` file and set 
 
 To add something to the configuration you can do:
 
-		Config::set('CONFIG_VARIABLE', 'VALUE');
-Later in your app you can use that configuration variable by doing:
+		$CONFIG->set('CONFIG_VARIABLE', 'VALUE');
+Later in your app (when you are **not** inside of `AppConfig.php` you can use that configuration variable by doing:
 
-		Config::get('CONFIG_VARIABLE');
+		$this->CONFIG->get('CONFIG_VARIABLE');
 
 ###Controller:
 Put all controllers in the `/controller` folder

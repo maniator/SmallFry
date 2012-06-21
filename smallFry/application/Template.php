@@ -7,10 +7,12 @@
 class Template {
     
     protected $templateVariables = array();
+    protected $CONFIG;
     
-    public function __construct(stdClass $PATH, SessionManager $SESSION, AppController $CONTROLLER) {
+    public function __construct(stdClass $PATH, SessionManager $SESSION, AppController $CONTROLLER, Config $CONFIG) {
+        $this->CONFIG = $CONFIG;
         $this->_path = $PATH;
-        $this->_session = $SESSION;
+        $this->session = $SESSION;
         $this->_controller = $CONTROLLER;
         $this->_controller->setTemplate($this);
         $this->_controller->init();
@@ -24,17 +26,21 @@ class Template {
         
         //LOAD TEMPLATE
         $main = ob_get_clean();
-        Config::set('main', $main);
+        $this->CONFIG->set('main', $main);
         $this->loadTemplate();
         //END LOAD TEMPLATE
+        
+        //DISPLAY DEBUG LOG
+        DebugLogger::destruct();
+        //END DEBUG LOG
     }
     
     
     private function loadTemplate(){
         
-        $page_title = $this->get('title') ? $this->get('title') : Config::get('DEFAULT_TITLE');
+        $page_title = $this->get('title') ? $this->get('title') : $this->CONFIG->get('DEFAULT_TITLE');
         //display output
-        $template_file = 'view/' . Config::get('template') . '.stp';
+        $template_file = 'view/' . $this->CONFIG->get('template') . '.stp';
 
         if(is_file($template_file)){
             include $template_file;
@@ -50,8 +56,8 @@ class Template {
         //Bring the variables to the local scope
         extract($this->getAll(), EXTR_SKIP); //load all variables into local scope (dont overwrite variables in scope)
 
-        if(Config::get('view')){
-            $template_file = 'view/' . Config::get('view') . '/' . Config::get('method') . '.stp';
+        if($this->CONFIG->get('view')){
+            $template_file = 'view/' . $this->CONFIG->get('view') . '/' . $this->CONFIG->get('method') . '.stp';
             if(is_file($template_file)){
                 include $template_file;
             }
@@ -60,7 +66,7 @@ class Template {
             }
         }
         else {
-            Config::set('template', 'blank');
+            $this->CONFIG->set('template', 'blank');
             include 'view/missingfunction.stp'; //no such function error
         }
         
@@ -78,4 +84,7 @@ class Template {
         return $this->templateVariables;
     }
     
+    public function camelToWords($str){
+        return ucwords(preg_replace('/(?!^)[[:upper:]][[:lower:]]/', ' $0', preg_replace('/(?!^)[[:upper:]]+/', ' $0', $str)));
+    }
 }
