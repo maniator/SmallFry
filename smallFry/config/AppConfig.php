@@ -15,8 +15,10 @@ function flush_buffers(){
 
 include 'smallFry/config/Autoloader.php';
 
+$CONFIG = new Config();
+
 //DATABASE INFO
-Config::set('DB_INFO', array(
+$CONFIG->set('DB_INFO', array(
     'host' => '',
     'login' => '',
     'password' => '',
@@ -25,27 +27,27 @@ Config::set('DB_INFO', array(
 //END DATABASE INFO
 
 //DEFAULT TEMPLATE
-Config::set('APP_NAME', 'SmallFry');
+$CONFIG->set('APP_NAME', 'SmallFry');
 //END DEFAULT TEMPLAT
 //
 //DEFAULT TEMPLATE
-Config::set('DEFAULT_TEMPLATE', 'default');
+$CONFIG->set('DEFAULT_TEMPLATE', 'default');
 //END DEFAULT TEMPLATE
 
 //DEFAULT TITLE
-Config::set('DEFAULT_TITLE', 'SmallFry App');
+$CONFIG->set('DEFAULT_TITLE', 'SmallFry App');
 //END DEFAULT TITLE
 
 //LOGIN SEED
-Config::set('LOGIN_SEED', "ghlkjhgk;hjkiuo");
+$CONFIG->set('LOGIN_SEED', "ghlkjhgk;hjkiuo");
 //END LOGIN SEED
 
-Config::set('DEFAULT_CONTROLLER', 'AppController'); //Remember to set this!
+$CONFIG->set('DEFAULT_CONTROLLER', 'AppController'); //Remember to set this!
 
 //DEBUG FLAGS
-Config::set('DEBUG_MODE', false);
-Config::set('DEBUG_QUERIES', false);
+$CONFIG->set('DEBUG_MODE', false);
+$CONFIG->set('DEBUG_QUERIES', false);
 
 //LOAD BOOTSTRAP
-$boot = new Bootstrap();
+$boot = new Bootstrap($CONFIG);
 //END BOOTSTRAP LOAD
