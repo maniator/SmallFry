@@ -1,0 +1,148 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Smallfry by maniator</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/maniator/SmallFry">View On GitHub</a></li>
+          <li class="downloads"><a href="https://github.com/maniator/SmallFry/zipball/master">ZIP</a></li>
+          <li class="downloads"><a href="https://github.com/maniator/SmallFry/tarball/master">TAR</a></li>
+          <li class="title">DOWNLOADS</li>
+        </nav>
+      </div><!-- end header -->
+
+    <div class="wrapper">
+
+      <section>
+        <div id="title">
+          <h1>Smallfry</h1>
+          <p>Small MVC Library for PHP</p>
+          <hr>
+          <span class="credits left">Project maintained by <a href="https://github.com/maniator">maniator</a></span>
+          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="http://twitter.com/#!/michigangraham">mattgraham</a></span>
+        </div>
+
+        <h1>SmallFry PHP Library</h1>
+
+<h3>Configuration:</h3>
+
+<p>Put all configuration into in the <code>/smallFry/config/AppConfig.php</code> file and set ROOTs in the <code>Autoloader.php</code> file</p>
+
+<p>To add something to the configuration you can do:</p>
+
+<pre><code>    $CONFIG-&gt;set('CONFIG_VARIABLE', 'VALUE');
+</code></pre>
+
+<p>Later in your app (when you are <strong>not</strong> inside of <code>AppConfig.php</code>) you can use that configuration variable by doing:</p>
+
+<pre><code>    $this-&gt;CONFIG-&gt;get('CONFIG_VARIABLE');
+</code></pre>
+
+<h3>Controller:</h3>
+
+<p>Put all controllers in the <code>/controller</code> folder</p>
+
+<p>An example of a controller called <code>Test</code>:</p>
+
+<pre><code>    class TestController extends AppController {
+        var $name = 'Test';
+
+        //pages go here
+        function index(){
+            $this-&gt;template-&gt;set('test', 'hello there');
+        }
+    }
+</code></pre>
+
+<h3>Views:</h3>
+
+<p>Put all views in the <code>/view</code> folder with a directory for every different controller:</p>
+
+<p>The view for the <code>Test</code> controller (located in <code>/view/test/index.stp</code>):</p>
+
+<pre><code>    echo $test;
+</code></pre>
+
+<p>This will display to the user when they go to <code>http://localhost/index.php/Test/index</code>:</p>
+
+<pre><code>    hello there
+</code></pre>
+
+<h3>MySQL and Models:</h3>
+
+<p>Inside of the controller class you can do mysql queries<br>
+The object to use is <code>$this-&gt;ModelName</code> which is the model that handles all database queries.</p>
+
+<p>For example (a raw mysql example):</p>
+
+<pre><code>    class TestController extends AppController {
+        var $name = 'Test';
+
+        function index(){
+            $rows = array();
+            $results = $this-&gt;Test-&gt;queryit('SELECT * FROM TABLE'); // one way to use a model to query the database
+            foreach($results as $row) {
+                $rows[] = $row;
+            }
+            $this-&gt;template-&gt;set('rows', $rows); //for use in the view
+        }
+    }
+</code></pre>
+
+<p>In order to use the following example you have to create a <code>Model</code> that goes with the current controller in the <code>model</code> directory:</p>
+
+<pre><code>    class Test extends AppModel {
+
+    }
+</code></pre>
+
+<p>This model will query from the <code>tests</code> table if one is <strong>not</strong> doing raw MySQL statements.</p>
+
+<p>This example selects all records from the <code>tests</code> table in the database:</p>
+
+<pre><code>    class TestController extends AppController {
+        var $name = 'Test';
+
+        function index(){
+            $rows = array();
+            $results = $this-&gt;Test-&gt;selectAll();
+            foreach($results as $row) {
+                $rows[] = $row;
+            }
+            $this-&gt;template-&gt;set('rows', $rows); //for use in the view
+        }
+    }
+</code></pre>
+      </section>
+
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
+              <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-32732151-1");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+  </body>
+</html>
