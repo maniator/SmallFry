@@ -125,10 +125,8 @@ class SQLQuery {
         }
         if(count($join_section) > 0){
             foreach($join_section as $join){
-//                echo "<pre>Checking on \n".print_r($join, true)."</pre>";;
                 if(isset($join['model']) && isset($join['on']) && ($model_obj = $this->getModelObject($join['model']))){
                     $join_cols = $model_obj->getModelColumns((isset($join['asTable'])? $join['asTable'] : false));
-//                    echo $join['model'].PHP_EOL;
                     $columns .= ", \n    ".implode(", \n    ", $join_cols);
                     $joinOn = $join['on'];
                     if(is_array($joinOn)){
@@ -185,9 +183,7 @@ class SQLQuery {
                 $tempResults = array();
 
                 while ($row = $this->dbHandle->get_row($this->mysqlResult)) {
-//                    echo "<pre>";
                     foreach($row as $key=>$field)   {
-//                        echo "$key=>$field".PHP_EOL;
                         $fieldSplit = explode('.',$key);
                         if(!is_numeric($key) && count($fieldSplit) > 1){
                             $fieldSplit = explode('.',$key);
@@ -204,7 +200,6 @@ class SQLQuery {
                     }
                     array_push($result,$tempResults);
                 }
-//                die("<pre>".print_r($result, true));
                 return($result);
             }
 
@@ -255,10 +250,7 @@ class SQLQuery {
     }
     
     function getModelObject($modelName){
-//        echo "<pre>";
-//        echo "GET OBJECT $modelName".PHP_EOL;
         if(isset($this->$modelName)){        
-//            echo "SET CURRENT MODEL $modelName".PHP_EOL;
             $this->currentModel = $this->$modelName;
         }
         if(!isset($this->$modelName) && isset($this->currentModel->$modelName) ){
@@ -267,8 +259,6 @@ class SQLQuery {
         if($modelName == get_class($this)) {    //joining with my own model
             $this->currentModel = $this;
         }
-//        echo "RETURN ".(isset($this->currentModel) ? "\$this->currentModel" : false).PHP_EOL;
-//        echo "</pre>";
         return isset($this->currentModel) ? $this->currentModel : false;
     }
 }
