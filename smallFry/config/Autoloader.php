@@ -6,7 +6,7 @@ date_default_timezone_set('America/New_York');
 define('WEBROOT', 'http://localhost/');
 define('INDEX', 'index.php/');
 define('DOCROOT', '/var/www/html/');
-define('BASEROOT', 'C:\\inetpub\\web_base\\');
+define('BASEROOT', DOCROOT."smallFry/");
 define('SCRIPTROOT', WEBROOT."webroot/");
 //END DEFINE ROOTS
 
