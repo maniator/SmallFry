@@ -9,6 +9,7 @@ class MySQL extends mysqli  {
     
     private $_result;    
     private $_last_query = null;
+    private $_db_name;
     private $_debug;
     /**
      * Start a mysqli connection
@@ -19,13 +20,17 @@ class MySQL extends mysqli  {
      */
     function __construct($server, $username, $password, $dbname, $debug = false)    {
         parent::__construct($server, $username, $password, $dbname);
-        
+        $this->_db_name = $dbname;
         if (mysqli_connect_errno()) {
             printf("Connect failed: %s\n", mysqli_connect_error());
             exit();
         }
         
         $this->debug = $debug;
+    }
+    
+    function getSchemaName(){
+        return $this->_db_name;
     }
     
     /**

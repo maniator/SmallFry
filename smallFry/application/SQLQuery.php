@@ -12,52 +12,32 @@ class SQLQuery {
         'primary' => null, 
         'secondary' => null,
     );
-    protected static $handle = null;
-    protected static $secondaryHandle = null;
+
     protected $mysqlResult = null;
     protected $modelTable = null;
+    /** @var Config **/
+    protected $CONFIG;
+    /** @var MySQL **/
+    protected $firstHandle;
+    /** @var MySQL **/
+    protected $secondHandle;
 
-    /** Connects to database **/
-    function connect($address, $account, $pwd, $name, $secondary = false) {
-
-        $handleToUse = &self::$handle;
-        if($secondary) {
-            $this->dbs['secondary'] = $name;
-            $handleToUse = &self::$secondaryHandle;
-        }
-        else    {
-            $this->dbs['primary'] = $name;
-        }
-        
-        if($secondary && $address === null) {
-            $handleToUse = &self::$secondaryHandle;
-        }
-        
-        if($handleToUse === null){
-            $handleToUse = new MySQL($address, $account, $pwd, $name, $this->CONFIG->get('DEBUG_QUERIES'));
-        }
-        $this->useSecondaryHandle($secondary);
-        if ($handleToUse) {
-            if ($handleToUse->select_db($name)) {
-                return 1;
-            }
-            else {
-                return 0;
-            }
-        }
-        else {
-            return 0;
-        }
+    /** Connects to database **/    
+    function connect(MySQL $firstHandle, MySQL $secondHandle = null)   {
+        $this->firstHandle = $firstHandle;
+        $this->secondHandle = $secondHandle;
+        $this->useSecondaryHandle(false);
     }
         
     function useSecondaryHandle($secondary = true){
+        
         if($secondary)  {
-            $this->dbName = $this->dbs['secondary'];
-            $this->dbHandle = self::$secondaryHandle;
+            $this->dbName = $this->secondHandle->getSchemaName();
+            $this->dbHandle = $this->secondHandle;
         }
         else    {
-            $this->dbName = $this->dbs['primary'];
-            $this->dbHandle = self::$handle;
+            $this->dbName = $this->firstHandle->getSchemaName();
+            $this->dbHandle = $this->firstHandle;
         }
         
         $this->modelColumns = $this->getColumnNames();
@@ -92,15 +72,15 @@ class SQLQuery {
         return $this->select(); //empty select() is the same as a select all
     }
 
-    function selectById($id, $idName = 'id') {
+    function selectById($id, $idName = 'id', $single = 0) {
         return $this->select(array(
             'conditions'=>array(
                 sprintf("`%s` = '%s'", $idName, $id)
             )
-        ));
+        ), $single);
     }
 
-    function select($options = array()){
+    function select($options = array(), $single = 0){
         $select_query = "SELECT %s \nFROM %s as `%s` %s %s %s %s;";
         $where_section = array();
         $order_section = array();
@@ -145,12 +125,15 @@ class SQLQuery {
         }
         if(count($join_section) > 0){
             foreach($join_section as $join){
+//                echo "<pre>Checking on \n".print_r($join, true)."</pre>";;
                 if(isset($join['model']) && isset($join['on']) && ($model_obj = $this->getModelObject($join['model']))){
                     $join_cols = $model_obj->getModelColumns((isset($join['asTable'])? $join['asTable'] : false));
+//                    echo $join['model'].PHP_EOL;
                     $columns .= ", \n    ".implode(", \n    ", $join_cols);
                     $joinOn = $join['on'];
                     if(is_array($joinOn)){
                         $firstOn = true;
+                        $joinCondition = "";
                         foreach($joinOn as $onS)    {
                             $key = "AND";
                             $condition = $onS;
@@ -158,9 +141,10 @@ class SQLQuery {
                                 $key = isset($onS['type']) ? $onS['type'] : "AND";
                                 $condition = $onS['condition'];
                             }
-                            $where .= sprintf(" %s %s\n", ($firstOn ? "" : $key), $condition);
+                            $joinCondition .= sprintf(" %s %s\n", ($firstOn ? "" : $key), $condition);
                             $firstOn = false;
                         } 
+                        $joinOn = $joinCondition;
                     }
                     $asTable = (isset($join['asTable'])? $join['asTable'] : $join['model']);
                     $join_query .= sprintf("\nLEFT JOIN %s as `%s` ON %s", $model_obj->getModelTable(), $asTable, $joinOn);
@@ -170,8 +154,9 @@ class SQLQuery {
         //Custom Fields
         if(isset($opts_fields) && is_array($opts_fields) && count($opts_fields) > 0){
             foreach($opts_fields as $key=>&$fieldName){
-                if(trim($fieldName) == "*") {   //Remove errant *
-                    unset($opts_fields[$key]);
+                if(trim($fieldName) == "*") {   
+                    //add all columns from this model:
+                    $fieldName = implode(", \n    ", $this->modelColumns);
                     continue;
                 }
                 if(is_numeric($key)){
@@ -185,7 +170,7 @@ class SQLQuery {
         }
         $select_query = sprintf($select_query, $columns, $this->getModelTable(), $this->modelName, $join_query, $where, $group, $order);
         
-        return $this->queryit($select_query, 0);
+        return $this->queryit($select_query, $single);
     }
     
     /** Custom SQL Query **/
@@ -200,7 +185,9 @@ class SQLQuery {
                 $tempResults = array();
 
                 while ($row = $this->dbHandle->get_row($this->mysqlResult)) {
+//                    echo "<pre>";
                     foreach($row as $key=>$field)   {
+//                        echo "$key=>$field".PHP_EOL;
                         $fieldSplit = explode('.',$key);
                         if(!is_numeric($key) && count($fieldSplit) > 1){
                             $fieldSplit = explode('.',$key);
@@ -217,6 +204,7 @@ class SQLQuery {
                     }
                     array_push($result,$tempResults);
                 }
+//                die("<pre>".print_r($result, true));
                 return($result);
             }
 
@@ -267,12 +255,20 @@ class SQLQuery {
     }
     
     function getModelObject($modelName){
+//        echo "<pre>";
+//        echo "GET OBJECT $modelName".PHP_EOL;
         if(isset($this->$modelName)){        
+//            echo "SET CURRENT MODEL $modelName".PHP_EOL;
             $this->currentModel = $this->$modelName;
         }
         if(!isset($this->$modelName) && isset($this->currentModel->$modelName) ){
             $this->currentModel = $this->currentModel->$modelName;
         }
+        if($modelName == get_class($this)) {    //joining with my own model
+            $this->currentModel = $this;
+        }
+//        echo "RETURN ".(isset($this->currentModel) ? "\$this->currentModel" : false).PHP_EOL;
+//        echo "</pre>";
         return isset($this->currentModel) ? $this->currentModel : false;
     }
 }

@@ -17,7 +17,7 @@ class DebugLogger {
     public static function init(){  
         self::$CONFIG = new Config();
         self::$logBool = self::$CONFIG->get('DEBUG_MODE');
-        self::$logger = new Log($_SERVER['AUTH_USER']);
+        self::$logger = new Log($_SERVER['AUTH_USER'], 2, DOCROOT);
         self::$logger->startLog(self::$CONFIG->get('APP_NAME'));
     }
     
@@ -30,6 +30,9 @@ class DebugLogger {
             }
             self::$logs .= sprintf(self::$logTemplate, $caller['file'], $caller['line'], $msg);
             if(self::$echo) echo $msg; self::$echo = false;
+            if(strlen(self::$logs)) {   //only print if there are log messages
+                self::$CONFIG->set("DEBUG_LOG_INFO", sprintf("<div class='debug'>%s</div>", self::$logs));
+            }
         }
     }
     
@@ -41,7 +44,7 @@ class DebugLogger {
     
     public static function destruct()    {
         if(strlen(self::$logs)) {   //only print if there are log messages
-            printf("<div class='debug'>%s</div>", self::$logs);
+            self::$CONFIG->set("DEBUG_LOG_INFO", sprintf("<div class='debug'>%s</div>", self::$logs));
         }
     }
 }

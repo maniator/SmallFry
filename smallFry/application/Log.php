@@ -22,7 +22,9 @@ class Log {
         $file = $this->_dirLevel."logs\\".date("Y_m_d");
 
         if(!is_dir($file)){
-            mkdir($file);
+            if(!(@mkdir($file))){
+                exit("No such file or directory $file");
+            }
         }
 
         $logs = scandir($file);

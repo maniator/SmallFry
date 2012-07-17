@@ -50,24 +50,22 @@ Class Bootstrap {
      * @return stdClass
      */
     private function readPath(){
-        $path = isset($_SERVER["PATH_INFO"])?$_SERVER["PATH_INFO"]:'/'.$this->CONFIG->get('DEFAULT_CONTROLLER');
+        $default_controller = $this->CONFIG->get('DEFAULT_CONTROLLER');
+        
+        $_SERVER["PATH_INFO"] = !isset($_SERVER["PATH_INFO"]) ? "/" : $_SERVER["PATH_INFO"];
+        $path = $_SERVER["PATH_INFO"] ?: '/'.$default_controller;
 
         $path_info = explode("/",$path);
-        $page = (isset($path_info[2]) && strlen($path_info[2]) > 0)?$path_info[2]:'index';
-        list($page, $temp) = explode('.', $page) + array('index', null);
-        $args = array_slice($path_info, 3);
-        $controller = $path_info[1] ?: $this->CONFIG->get('DEFAULT_CONTROLLER');
-        
-        $this->_session->set('modelRedirect', array(
-            'model' => $controller,
-            'fn' => $page
-        )); //for redirect after login
+        $page = isset($path_info[2]) ? $path_info[2] : "index";
+        list($page, $temp) = explode('.', $page) + array("index", null);
+        $model = $path_info[1] ?: $default_controller;
         
         return (object) array(
-            'path_info'=>$path_info,
-            'page'=>$page,
-            'args'=>$args,
-            'controller'=>$controller
+            'path_info' => $path_info,
+            'page' => $page,
+            'args' => array_slice($path_info, 3),
+            'route_args' => array_slice($path_info, 2),   //if is a route, ignore page
+            'model' => $model
         );
     }
     
@@ -81,14 +79,32 @@ Class Bootstrap {
         $modFolders = array('images', 'js', 'css');
 
         //load controller
-        if(strlen($this->_path->controller) == 0) $this->_path->controller = $this->CONFIG->get('DEFAULT_CONTROLLER');
+        if(strlen($this->_path->model) == 0) $this->_path->model = $this->CONFIG->get('DEFAULT_CONTROLLER');
         
-        if(count(array_intersect($this->_path->path_info, $modFolders)) == 0){ //load it only if it is not in one of those folders
-            $controllerName = "{$this->_path->controller}Controller";
-            return $this->create_controller($controllerName); 
+        //find if is in modFolders:
+        $folderIntersect = array_intersect($this->_path->path_info, $modFolders);
+        
+        if(count($folderIntersect) == 0){ //load it only if it is not in one of those folders
+            $controllerName = "{$this->_path->model}Controller";
+            $app_controller = $this->create_controller($controllerName); 
+            if(!$app_controller)    {
+                $route = $this->CONFIG->getRoute($this->_path->model);
+                if($route)  {   //try to find route
+                    $this->_path->page = $route->page;
+                    $this->CONFIG->set('page', $route->page);   //reset the page name
+                    $this->_path->args = count($route->args) ? $route->args : $this->_path->route_args;
+                    $app_controller = $this->create_controller($route->controller);
+                }
+                else    {
+                    //show nothing 
+                    header("HTTP/1.1 404 Not Found");
+                    exit;
+                }
+            }
+            return $app_controller;
         }
         else {  //fake mod-rewrite
-            $this->rewrite($this->_path->path_info);
+            $this->rewrite($this->_path->path_info, $folderIntersect);
         }
         //END LOAD CONTROLLER
     }
@@ -98,12 +114,32 @@ Class Bootstrap {
      * @assert (AppController)
      */
     private function create_controller($controllerName) {
+        
+        //DB CONN
+        $firstHandle = null;
+        $secondHandle = null;
+        //Primary db connection
+        $database_info = $this->CONFIG->get('DB_INFO');
+        if($database_info)  {
+            $firstHandle = new MySQL($database_info['host'], $database_info['login'], 
+                                   $database_info['password'], $database_info['database'], $this->CONFIG->get('DEBUG_QUERIES'));
+        }
+        else    {
+            exit("DO NOT HAVE DB INFO SET");
+        }
+        
+        //Secondary db connection
+        $database_info = $this->CONFIG->get('SECONDARY_DB_INFO');
+        if($database_info)  {
+            $secondHandle = new MySQL($database_info['host'], $database_info['login'], 
+                                   $database_info['password'], $database_info['database'], $this->CONFIG->get('DEBUG_QUERIES'));
+        }
+        //END DB CONN
+                
         if (class_exists($controllerName) && is_subclass_of($controllerName, 'AppController')) {  
-            $app_controller  = new $controllerName($this->_session, $this->CONFIG); 
+            $app_controller  = new $controllerName($this->_session, $this->CONFIG, $firstHandle, $secondHandle); 
         } else {
-            //show nothing 
-            header("HTTP/1.1 404 Not Found");
-            exit;
+            return false;
         }
         return $app_controller;
     }
@@ -112,13 +148,16 @@ Class Bootstrap {
      *
      * @param array $path_info 
      */
-    private function rewrite($path_info){
-        $rewrite = $path_info[count($path_info) - 2];
-        $file_name = $path_info[count($path_info) - 1];
+    private function rewrite(array $path_info, array $folderIntersect){
+        
+        $find_path = array_keys($folderIntersect);
+        $find_length = count($find_path) - 1;
+        $file_name = implode("/",array_slice($path_info, $find_path[$find_length]));
 
-        $file = DOCROOT."webroot/".$rewrite."/".$file_name;
+        $file = DOCROOT."webroot/".$file_name;
+        
         if(is_file($file)){ //if the file is a real file
-            include DOCROOT.'/smallFry/functions/mime_type.php'; // needed for setups without `mime_content_type`
+            include BASEROOT.'/functions/mime_type.php'; // needed for setups without `mime_content_type`
             header('Content-type: '.mime_content_type($file));
             readfile($file);
         }

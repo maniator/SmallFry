@@ -20,14 +20,14 @@ class AppController {
      *
      * @param SessionManager $SESSION
      */
-    public function __construct(SessionManager $SESSION, Config $CONFIG) {
+    public function __construct(SessionManager $SESSION, Config $CONFIG, MySQL $firstHandle, MySQL $secondHandle = null) {
         $this->CONFIG = $CONFIG;
         $this->pageOn = $this->CONFIG->get('page');
         $this->session = $SESSION;
         $model_name = $this->name;
         if(class_exists($model_name) && is_subclass_of($model_name, 'AppModel')){
             /**  @var AppModel $this->$model_name */
-            $this->$model_name = new $model_name(null, $CONFIG);
+            $this->$model_name = new $model_name(null, $CONFIG, $firstHandle, $secondHandle);
         }
         else {
             //default model (no database table chosen)

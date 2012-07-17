@@ -30,30 +30,27 @@ class AppModel extends SQLQuery {
      * @var Config
      */
     protected $CONFIG;
+    /**
+     *
+     * @var MySQL
+     */
+    protected $firstHandle;
+    /**
+     *
+     * @var MySQL
+     */
+    protected $secondHandle;
     
-    function __construct($USEDBY = null, Config $CONFIG) {
+    function __construct($USEDBY = null, Config $CONFIG, MySQL $firstHandle, MySQL $secondHandle = null) {
         
         $this->CONFIG = $CONFIG;
+        $this->firstHandle = $firstHandle;
+        $this->secondHandle = $secondHandle;
         
         $this->modelName = get_class($this);
         $this->modelTable = strtolower(Pluralize::pluralize($this->modelName));
-        
-        //Primary db connection
-        $database_info = $this->CONFIG->get('DB_INFO');
-        if($database_info)  {
-            $this->connect($database_info['host'], $database_info['login'], 
-                                   $database_info['password'], $database_info['database']);
-        }
-        else
-            exit("DO NOT HAVE DB INFO SET");
-        
-        //Secondary db connection
-        $database_info = $this->CONFIG->get('SECONDARY_DB_INFO');
-        if($database_info)  {
-            $this->connect($database_info['host'], $database_info['login'], 
-                                   $database_info['password'], $database_info['database'], true);
-            $this->useSecondaryHandle(false);
-        }
+
+        $this->connect($firstHandle, $secondHandle);
         
         $this->usedBy = $USEDBY; 
         $this->parsePosts();
@@ -97,11 +94,26 @@ class AppModel extends SQLQuery {
                     $this->$usingModel = new $usingModel(array(
                         'name' => $this->modelName, 
                         'model' => $this
-                    ), $this->CONFIG);
+                    ), $this->CONFIG, $this->firstHandle, $this->secondHandle);
                 }
             }
         }
     }
+    
+    public function addUseModel($usingModel)   {
+        if(class_exists($usingModel) 
+            && is_subclass_of($usingModel, 'AppModel')
+            && !isset($this->$usingModel)){
+        /**
+         * @var AppModel $usingModel
+         */
+        $this->$usingModel = new $usingModel(array(
+            'name' => $this->modelName, 
+            'model' => $this
+        ), $this->CONFIG, $this->firstHandle, $this->secondHandle);
+    }
+    }
+    
     public final function setModelTable($tableName){
         $this->modelTable = $tableName;
         $this->modelColumns = $this->getColumnNames();

@@ -12,6 +12,7 @@ class Config {
      * @var array
      */
     private static $configVariables = array();
+    private $configRoutes = array();
     
     /**
      * Get a single configVariables variable
@@ -62,5 +63,31 @@ class Config {
     
     public function clean() {
         return self::static_clean();
+    }
+    
+    public function addRoute($location, $model, $page = "index", array $args = array())    {
+        $controllerName = "{$model}Controller";
+        //Make sure we can make this route
+        if(class_exists($controllerName) && is_subclass_of($controllerName, 'AppController'))   {
+            $this->configRoutes[strtolower($location)] =  (object)  array(
+                "controller" => $controllerName,
+                "page" => $page,
+                "args" => $args,
+            );
+        }
+        else    {
+            echo "$model does not exist. Canot use it for a Route";
+            exit;
+        }
+    }
+    
+    public function getRoute($location) {
+        $location = strtolower($location);
+        if(isset($this->configRoutes[$location]))   {
+            return $this->configRoutes[$location];
+        }
+        else    {
+            return false;
+        }
     }
 }
