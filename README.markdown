@@ -2,21 +2,20 @@ SmallFry PHP Library
 ==
 
 ###Configuration:
-Put all configuration into in the `/smallFry/config/AppConfig.php` file and set ROOTs in the `Autoloader.php` file
+Put all configuration into in the `/smallFry/config/config.ini` file and set ROOTs in the `AppConfig.php` file
 
-To add something to the configuration you can do:
+To get something from the configuration you can do when inside a Model or Controller:
 
-		$CONFIG->set('CONFIG_VARIABLE', 'VALUE');
-Later in your app (when you are **not** inside of `AppConfig.php`) you can use that configuration variable by doing:
-
-		$this->CONFIG->get('CONFIG_VARIABLE');
+		$this->CONFIG->get('CONFIG_VARIABLE'); 
 
 ###Controller:
 Put all controllers in the `/controller` folder
 
 An example of a controller called `Test`:
 
-		class TestController extends AppController {
+        namespace SmallFry\Controller;
+        
+		class TestController extends \SmallFry\lib\AppController {
 			var $name = 'Test';
 			
 			//pages go here
@@ -42,7 +41,9 @@ The object to use is `$this->ModelName` which is the model that handles all data
 
 For example (a raw mysql example):
 
-		class TestController extends AppController {
+		namespace SmallFry\Controller;
+        
+    	class TestController extends \SmallFry\lib\AppController {
 			var $name = 'Test';
 			
 			function index(){
@@ -57,7 +58,9 @@ For example (a raw mysql example):
 		
 In order to use the following example you have to create a `Model` that goes with the current controller in the `model` directory:
 
-		class Test extends AppModel {
+		namespace SmallFry\Model;
+        
+        class Test extends \SmallFry\lib\AppModel {
 
 		}
 		
@@ -65,7 +68,9 @@ This model will query from the `tests` table if one is **not** doing raw MySQL s
 
 This example selects all records from the `tests` table in the database:
 
-		class TestController extends AppController {
+		namespace SmallFry\Controller;
+        
+        class TestController extends \SmallFry\lib\AppController {
 			var $name = 'Test';
 			
 			function index(){
