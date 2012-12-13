@@ -53,7 +53,7 @@ class SQLQuery {
     function printDebug($secondary)   {
         DebugLogger::displayLog(get_class($this). " Secondary? " . ($secondary ? "yes" : "no"));
         DebugLogger::displayLog("This Table: ". $this->modelTable);
-	    $this->usingPDO = $this->CONFIG->get('DB_NEW');
+	$this->usingPDO = $this->CONFIG->get('DB_NEW');
         if ($result = $this->dbHandle->query("SELECT DATABASE() as db")) {
 	    if($this->usingPDO)    {
 		$row = $result->fetch(\PDO::FETCH_BOTH);
@@ -384,13 +384,8 @@ class SQLQuery {
       return $columns;
     }
     
-<<<<<<< HEAD:application/lib/SQLQuery.php
     function getModelObject($modelName, $returnIfFalse = false){
         if(isset($this->$modelName)){     
-=======
-    function getModelObject($modelName){
-        if(isset($this->$modelName)){        
->>>>>>> 9cda67104a670a1652b1f32e6cb23e24b9c49e69:smallFry/application/SQLQuery.php
             $this->currentModel = $this->$modelName;
             return $this->$modelName;
         }
