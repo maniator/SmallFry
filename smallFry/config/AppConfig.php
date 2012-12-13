@@ -15,7 +15,7 @@ define("CONFIG", __NAMESPACE__ . '\\');
 define(CONFIG.'WEBROOT', 'http://localhost');
 define(CONFIG.'INDEX', 'index.php');
 define(CONFIG.'DOCROOT', 'C:\\inetpub\\\appname\\');
-define(CONFIG.'BASEROOT', 'C:\\inetpub\\appname\\application\\');
+define(CONFIG.'BASEROOT', 'C:\\inetpub\\appname\\');
 define(CONFIG.'SCRIPTROOT', WEBROOT."webroot/");
 //END DEFINE ROOTS
 

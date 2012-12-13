@@ -1,5 +1,5 @@
 <?php
-
+namespace SmallFry\helper;
 /**
  * Description of FormHelper
  *
