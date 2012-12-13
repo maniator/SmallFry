@@ -16,7 +16,7 @@ An example of a controller called `Test`:
         namespace SmallFry\Controller;
         
 		class TestController extends \SmallFry\lib\AppController {
-			var $name = 'Test';
+			protected $name = 'Test';
 			
 			//pages go here
 			function index(){
@@ -44,7 +44,7 @@ For example (a raw mysql example):
 		namespace SmallFry\Controller;
         
     	class TestController extends \SmallFry\lib\AppController {
-			var $name = 'Test';
+			protected $name = 'Test';
 			
 			function index(){
 				$rows = array();
@@ -71,7 +71,7 @@ This example selects all records from the `tests` table in the database:
 		namespace SmallFry\Controller;
         
         class TestController extends \SmallFry\lib\AppController {
-			var $name = 'Test';
+			protected $name = 'Test';
 			
 			function index(){
 				$rows = array();
