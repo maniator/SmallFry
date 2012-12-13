@@ -1,4 +1,8 @@
 <?php
+namespace SmallFry\Config;
+use SmallFry\lib\Config as Config;
+use SmallFry\lib\Bootstrap as Bootstrap;
+
 //*DEBUG ERROR REPORTING
 ini_set('display_errors', 1); 
 ini_set('log_errors', 1); 
@@ -6,14 +10,16 @@ ini_set('error_log', dirname(__FILE__) . '/error_log.txt');
 error_reporting(E_ALL);
 //END DEBUG ERROR REPORTING*/
 
-function flush_buffers(){
-    ob_end_flush();
-    ob_flush();
-    flush();
-    ob_start();
-}
+//DEFINE ROOTS
+define("CONFIG", __NAMESPACE__ . '\\');
+define(CONFIG.'WEBROOT', 'http://localhost');
+define(CONFIG.'INDEX', 'index.php');
+define(CONFIG.'DOCROOT', 'C:\\inetpub\\\appname\\');
+define(CONFIG.'BASEROOT', 'C:\\inetpub\\appname\\application\\');
+define(CONFIG.'SCRIPTROOT', WEBROOT."webroot/");
+//END DEFINE ROOTS
 
-include 'smallFry/config/Autoloader.php';
+include BASEROOT . 'functions/autoload.php';
 
 $CONFIG = new Config();
 
@@ -29,24 +35,10 @@ $CONFIG->set('DB_INFO', array(
 //DEFAULT TEMPLATE
 $CONFIG->set('APP_NAME', 'SmallFry');
 //END DEFAULT TEMPLAT
-//
-//DEFAULT TEMPLATE
-$CONFIG->set('DEFAULT_TEMPLATE', 'default');
-//END DEFAULT TEMPLATE
 
-//DEFAULT TITLE
-$CONFIG->set('DEFAULT_TITLE', 'SmallFry App');
-//END DEFAULT TITLE
-
-//LOGIN SEED
-$CONFIG->set('LOGIN_SEED', "ghlkjhgk;hjkiuo");
-//END LOGIN SEED
-
-$CONFIG->set('DEFAULT_CONTROLLER', 'AppController'); //Remember to set this!
-
-//DEBUG FLAGS
-$CONFIG->set('DEBUG_MODE', false);
-$CONFIG->set('DEBUG_QUERIES', false);
+//load ini file
+$CONFIG->parseIni(DOCROOT . "smallFry/config/config.ini");
+//load ini file
 
 //LOAD BOOTSTRAP
 $boot = new Bootstrap($CONFIG);
