@@ -1,57 +1,45 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
+
   <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <title>Smallfry by maniator</title>
-    <link rel="stylesheet" href="stylesheets/styles.css">
-    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-    <script src="javascripts/respond.js"></script>
-    <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-    <!--[if lt IE 8]>
-    <link rel="stylesheet" href="stylesheets/ie.css">
-    <![endif]-->
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Smallfry : Small MVC Library for PHP" />
 
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Smallfry</title>
   </head>
+
   <body>
-      <div id="header">
-        <nav>
-          <li class="fork"><a href="https://github.com/maniator/SmallFry">View On GitHub</a></li>
-          <li class="downloads"><a href="https://github.com/maniator/SmallFry/zipball/master">ZIP</a></li>
-          <li class="downloads"><a href="https://github.com/maniator/SmallFry/tarball/master">TAR</a></li>
-          <li class="title">DOWNLOADS</li>
-        </nav>
-      </div><!-- end header -->
 
-    <div class="wrapper">
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/maniator/SmallFry">View on GitHub</a>
 
-      <section>
-        <div id="title">
-          <h1>Smallfry</h1>
-          <p>Small MVC Library for PHP</p>
-          <hr>
-          <span class="credits left">Project maintained by <a href="https://github.com/maniator">maniator</a></span>
-          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="http://twitter.com/#!/michigangraham">mattgraham</a></span>
-        </div>
+          <h1 id="project_title">Smallfry</h1>
+          <h2 id="project_tagline">Small MVC Library for PHP</h2>
 
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/maniator/SmallFry/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/maniator/SmallFry/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
         <h1>SmallFry PHP Library</h1>
 
 <h3>Configuration:</h3>
 
-<p>Put all configuration into in the <code>/smallFry/config/AppConfig.php</code> file and set ROOTs in the <code>Autoloader.php</code> file</p>
+<p>Put all configuration into in the <code>/smallFry/config/config.ini</code> file and set ROOTs in the <code>AppConfig.php</code> file</p>
 
-<p>To add something to the configuration you can do:</p>
+<p>To get something from the configuration you can do when inside a Model or Controller:</p>
 
-<pre><code>    $CONFIG-&gt;set('CONFIG_VARIABLE', 'VALUE');
-</code></pre>
-
-<p>Later in your app (when you are <strong>not</strong> inside of <code>AppConfig.php</code>) you can use that configuration variable by doing:</p>
-
-<pre><code>    $this-&gt;CONFIG-&gt;get('CONFIG_VARIABLE');
+<pre><code>    $this-&gt;CONFIG-&gt;get('CONFIG_VARIABLE'); 
 </code></pre>
 
 <h3>Controller:</h3>
@@ -60,8 +48,10 @@
 
 <p>An example of a controller called <code>Test</code>:</p>
 
-<pre><code>    class TestController extends AppController {
-        var $name = 'Test';
+<pre><code>    namespace SmallFry\Controller;
+
+    class TestController extends \SmallFry\lib\AppController {
+        protected $name = 'Test';
 
         //pages go here
         function index(){
@@ -91,8 +81,10 @@ The object to use is <code>$this-&gt;ModelName</code> which is the model that ha
 
 <p>For example (a raw mysql example):</p>
 
-<pre><code>    class TestController extends AppController {
-        var $name = 'Test';
+<pre><code>    namespace SmallFry\Controller;
+
+    class TestController extends \SmallFry\lib\AppController {
+        protected $name = 'Test';
 
         function index(){
             $rows = array();
@@ -107,7 +99,9 @@ The object to use is <code>$this-&gt;ModelName</code> which is the model that ha
 
 <p>In order to use the following example you have to create a <code>Model</code> that goes with the current controller in the <code>model</code> directory:</p>
 
-<pre><code>    class Test extends AppModel {
+<pre><code>    namespace SmallFry\Model;
+
+    class Test extends \SmallFry\lib\AppModel {
 
     }
 </code></pre>
@@ -116,8 +110,10 @@ The object to use is <code>$this-&gt;ModelName</code> which is the model that ha
 
 <p>This example selects all records from the <code>tests</code> table in the database:</p>
 
-<pre><code>    class TestController extends AppController {
-        var $name = 'Test';
+<pre><code>    namespace SmallFry\Controller;
+
+    class TestController extends \SmallFry\lib\AppController {
+        protected $name = 'Test';
 
         function index(){
             $rows = array();
@@ -130,9 +126,16 @@ The object to use is <code>$this-&gt;ModelName</code> which is the model that ha
     }
 </code></pre>
       </section>
-
     </div>
-    <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Smallfry maintained by <a href="https://github.com/maniator">maniator</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
               <script type="text/javascript">
             var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
             document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
@@ -143,6 +146,7 @@ The object to use is <code>$this-&gt;ModelName</code> which is the model that ha
             pageTracker._trackPageview();
             } catch(err) {}
           </script>
+
 
   </body>
 </html>
