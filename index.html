@@ -18,7 +18,7 @@
         <header class="inner">
           <a id="forkme_banner" href="https://github.com/maniator/SmallFry">View on GitHub</a>
 
-          <h1 id="project_title">Smallfry</h1>
+          <h1 id="project_title"><a href="index.html" style="color: white;">Smallfry</a></h1>
           <h2 id="project_tagline">Small MVC Library for PHP</h2>
 
             <section id="downloads">
@@ -33,98 +33,31 @@
       <section id="main_content" class="inner">
         <h1>SmallFry PHP Library</h1>
 
-<h3>Configuration:</h3>
-
-<p>Put all configuration into in the <code>/smallFry/config/config.ini</code> file and set ROOTs in the <code>AppConfig.php</code> file</p>
-
-<p>To get something from the configuration you can do when inside a Model or Controller:</p>
-
-<pre><code>    $this-&gt;CONFIG-&gt;get('CONFIG_VARIABLE'); 
-</code></pre>
-
-<h3>Controller:</h3>
-
-<p>Put all controllers in the <code>/controller</code> folder</p>
-
-<p>An example of a controller called <code>Test</code>:</p>
-
-<pre><code>    namespace SmallFry\Controller;
-
-    class TestController extends \SmallFry\lib\AppController {
-        protected $name = 'Test';
-
-        //pages go here
-        function index(){
-            $this-&gt;template-&gt;set('test', 'hello there');
-        }
-    }
-</code></pre>
-
-<h3>Views:</h3>
-
-<p>Put all views in the <code>/view</code> folder with a directory for every different controller:</p>
-
-<p>The view for the <code>Test</code> controller (located in <code>/view/test/index.stp</code>):</p>
-
-<pre><code>    echo $test;
-</code></pre>
-
-<p>This will display to the user when they go to <code>http://localhost/index.php/Test/index</code>:</p>
-
-<pre><code>    hello there
-</code></pre>
-
-<h3>MySQL and Models:</h3>
-
-<p>Inside of the controller class you can do mysql queries<br>
-The object to use is <code>$this-&gt;ModelName</code> which is the model that handles all database queries.</p>
-
-<p>For example (a raw mysql example):</p>
-
-<pre><code>    namespace SmallFry\Controller;
-
-    class TestController extends \SmallFry\lib\AppController {
-        protected $name = 'Test';
-
-        function index(){
-            $rows = array();
-            $results = $this-&gt;Test-&gt;queryit('SELECT * FROM TABLE'); // one way to use a model to query the database
-            foreach($results as $row) {
-                $rows[] = $row;
-            }
-            $this-&gt;template-&gt;set('rows', $rows); //for use in the view
-        }
-    }
-</code></pre>
-
-<p>In order to use the following example you have to create a <code>Model</code> that goes with the current controller in the <code>model</code> directory:</p>
-
-<pre><code>    namespace SmallFry\Model;
-
-    class Test extends \SmallFry\lib\AppModel {
-
-    }
-</code></pre>
-
-<p>This model will query from the <code>tests</code> table if one is <strong>not</strong> doing raw MySQL statements.</p>
-
-<p>This example selects all records from the <code>tests</code> table in the database:</p>
-
-<pre><code>    namespace SmallFry\Controller;
-
-    class TestController extends \SmallFry\lib\AppController {
-        protected $name = 'Test';
-
-        function index(){
-            $rows = array();
-            $results = $this-&gt;Test-&gt;selectAll();
-            foreach($results as $row) {
-                $rows[] = $row;
-            }
-            $this-&gt;template-&gt;set('rows', $rows); //for use in the view
-        }
-    }
-</code></pre>
+<ul>
+    <li>
+        <a href='howTo/configuration.html' style='text-decoration: underline;color: black;'>
+            How to set up
+        </a>    
+    </li>
+    
+    <li>
+        <a href='howTo/controllers.html' style='text-decoration: underline;color: black;'>
+            How to use Controllers
+        </a>    
+    </li>
+    
+    <li>
+        <a href='howTo/views.html' style='text-decoration: underline;color: black;'>
+            How to use Views
+        </a>    
+    </li>
+    
+    <li>
+        <a href='howTo/models.html' style='text-decoration: underline;color: black;'>
+            How to use MySQL and Models
+        </a>    
+    </li>
+</ul>
       </section>
     </div>
 
