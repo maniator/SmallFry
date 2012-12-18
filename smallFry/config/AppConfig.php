@@ -23,19 +23,6 @@ include BASEROOT . 'functions/autoload.php';
 
 $CONFIG = new Config();
 
-//DATABASE INFO
-$CONFIG->set('DB_INFO', array(
-    'host' => '',
-    'login' => '',
-    'password' => '',
-    'database' => '',
-));
-//END DATABASE INFO
-
-//DEFAULT TEMPLATE
-$CONFIG->set('APP_NAME', 'SmallFry');
-//END DEFAULT TEMPLAT
-
 //load ini file
 $CONFIG->parseIni(DOCROOT . "smallFry/config/config.ini");
 //load ini file
