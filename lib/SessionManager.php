@@ -58,7 +58,7 @@ class SessionManager {
     }
     
     function close()    {
-    	session_write_close();
+	session_write_close();
     }
 }
 

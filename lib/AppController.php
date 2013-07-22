@@ -24,25 +24,27 @@ class AppController {
      * @param MySQL_Interface $firstHandle
      * @param MySQL_Interface $secondHandle 
      */
-    public function __construct(SessionManager $SESSION, Config $CONFIG, MySQL_Interface $firstHandle, MySQL_Interface $secondHandle = null) {
-        
+    public function __construct(SessionManager $SESSION, Config $CONFIG, AppModel $model, $modelCallback = null) {
         $this->CONFIG = $CONFIG;
-        $this->pageOn = $this->CONFIG->get('page');
         $this->session = $SESSION;
-        $model_name = isset($this->modelName) ? $this->modelName : $this->name;
-        
-    /* Build the AppModel */
-        $this->$model_name = &AppModelFactory::buildModel($model_name, $CONFIG, $firstHandle, $secondHandle);
+        if(isset($this->modelName)) {	//if the model is different than the controller name
+	        if($modelCallback !== null && is_callable($modelCallback))  {
+		        $model = $modelCallback($this->modelName);	//get real model
+	        }
+	    }
 
-	/* Get all posts */
-        $this->posts = $this->$model_name->getPosts();
+        $modelName = $model->getModelName();
+        $this->$modelName = $model;
+        /* Get all posts */
+        $this->posts = $model->getPosts();
+
+        $view = isset($this->viewName) ? $this->viewName : $modelName;
+        $this->CONFIG->set('view', strtolower($view));
+        $this->setHelpers();
         
-        $this->CONFIG->set('view', strtolower($model_name));
-        
-        if(!$this->session->get(strtolower($model_name))){
-            $this->session->set(strtolower($model_name), array());
+        if(!$this->session->get(strtolower($modelName))){
+            $this->session->set(strtolower($modelName), array());
         }
-        
     }
     
     private function getPublicMethods(){
@@ -65,7 +67,14 @@ class AppController {
      */
     public function setTemplate(Template $TEMPLATE){
         $this->template = $TEMPLATE;
-        $this->setHelpers();
+        $helpers = array();
+        foreach($this->helpers as $helper){
+            $help = "{$helper}Helper";
+            if(isset($this->$help)) {
+                $helpers[$helper] = $this->$help;
+            }
+        }
+        $this->template->set('helpers', (object) $helpers);
     }
     
     /**
@@ -73,6 +82,10 @@ class AppController {
      */
     public function init(){} //function to run right after constructor
     
+    
+    public function setPage($pageName)	{
+	$this->page = $pageName;
+    }
     /**
      * Show the current page in the browser
      *
@@ -80,19 +93,13 @@ class AppController {
      * @return string 
      */
     public function displayPage($args)  {
-        $this->CONFIG->set('method', $this->pageOn);
+        $this->CONFIG->set('method', $this->page);
         $public_methods = $this->getPublicMethods();
-        if(in_array($this->pageOn, $public_methods))    {  
-            call_user_func_array(array($this, $this->pageOn), $args);
+        if(in_array($this->page, $public_methods))    {
+            call_user_func_array(array($this, $this->page), $args);
         }
         else    {
-            if(!in_array($this->pageOn, $public_methods))   {
-                header("HTTP/1.1 404 Not Found");
-            }
-            else {
-                $this->CONFIG->set('method', '../missingfunction'); //don't even allow trying the page
-                return($this->getErrorPage($this->CONFIG->get('view')."/{$this->pageOn} does not exist."));
-            }
+	    throw new \Exception("{$this->name}/{$this->page} does not exist.");
             exit;
         }
     }
@@ -114,22 +121,13 @@ class AppController {
     }
     
     protected function setHelpers(){
-        $helpers = array();
         foreach($this->helpers as $helper){
             $help = "{$helper}Helper";
             $nameSpacedHelper = "SmallFry\\helper\\$help";
             if(class_exists($nameSpacedHelper) && is_subclass_of($nameSpacedHelper, 'SmallFry\\helper\\Helper')){
-                $this->$helper = new $nameSpacedHelper();
-                $helpers[$helper] = $this->$helper;
+                $this->$help = new $nameSpacedHelper();
             }
         }
-        $this->template->set('helpers', (object) $helpers);
-    }
-    
-    protected function logout(){
-        session_destroy();
-        header('Location: '.WEBROOT.'index.php');
-        exit;
     }
     
     /**

@@ -56,7 +56,7 @@ class AppModel extends SQLQuery {
         $className = explode("\\", get_class($this));
         
         $this->modelName = $className[count($className) - 1];
-        $this->modelTable = strtolower(Pluralize::pluralize($this->modelName));
+        $this->modelTable = strtolower(pluralize($this->modelName));
 
         $this->connect($firstHandle, $secondHandle);
         
@@ -74,6 +74,14 @@ class AppModel extends SQLQuery {
     	$this->addUseModel($usingModel);
             }
         }
+    }
+    
+    public function setModelName($name)  {
+	    $this->modelName = $name;
+    }
+    
+    public final function getModelName()    {
+	    return $this->modelName;
     }
     
     public final function addUseModel($usingModel)   {
@@ -98,8 +106,13 @@ class AppModel extends SQLQuery {
         else    return $this->modelColumns;
     }
     
-    public final function getModelTable(){
-        return sprintf("`%s`.`%s`", $this->dbName, $this->modelTable);
+    public final function getModelTable($withDb = true){
+        if($withDb) {
+            return sprintf("`%s`.`%s`", $this->dbName, $this->modelTable);
+        }
+        else    {
+            return $this->modelTable;
+        }
     }
     
     protected final function parsePosts(){
@@ -114,26 +127,87 @@ class AppModel extends SQLQuery {
     }
     
     protected final function realEscapeObject($q) {
-	if(!$this->CONFIG->get('DB_NEW'))   {
-	    if(is_array($q)) {
-		foreach($q as $k => $v) {
-		    $q[$k] = $this->realEscapeObject($v); //recurse into array
-		}
-	    }
-	    elseif(is_string($q))   {
-		$q = $this->dbHandle->real_escape_string($q);
-	    }
-	    return $q;
-	}
-	else	{
-	    return $q;
-	}
+        if(!$this->usePDO)   {
+            if(is_array($q)) {
+            foreach($q as $k => $v) {
+                $q[$k] = $this->realEscapeObject($v); //recurse into array
+            }
+            }
+            elseif(is_string($q))   {
+            $q = $this->dbHandle->real_escape_string($q);
+            }
+            return $q;
+        }
+        else	{
+            return $q;
+        }
     }
     
     public final function camelToWords($str){
-        return ucwords(preg_replace('/(?!^)[[:upper:]][[:lower:]]/', ' $0', preg_replace('/(?!^)[[:upper:]]+/', ' $0', $str)));
+        return _uncamel($str);
     }
-    
-    function __destruct() {}
+
+    public function changeField($fieldName, $value, $rowId = null, $idName = "id")   {
+        return $this->save(array($fieldName=>$value), $rowId, $idName);
+    }
+
+    public function save($values, $rowId = null, $idName = "id", $returnErrors = false)   {
+        if(!$this->usePDO)   {
+            echo "You cannot use the save function without PDO!";
+            exit;
+        }
+        $set = array();
+        $prepare = array();
+        foreach($values as $fieldName=>$value)  {
+            $set[] = sprintf("`%s` = ?", $fieldName);
+            $prepare[] = $value;
+        }
+        if(is_bool($rowId)) {
+            //this allows for less parameters when doing an insert
+            $returnErrors = $rowId;
+            $rowId = null;
+        }
+        if($rowId === null) {
+            $saveQuery = sprintf("
+                INSERT INTO %s
+                SET %s
+            ", $this->getModelTable(), implode(", \n", $set));
+        }
+        else {
+            $saveQuery = sprintf("
+                UPDATE %s
+                SET %s
+                WHERE `%s` = ?
+            ", $this->getModelTable(), implode(", \n", $set), $idName);
+            $prepare[] = $rowId;
+        }
+
+        $statement = $this->dbHandle->prepare($saveQuery);
+        if($statement){
+            if(!$statement->execute($prepare)){
+                if($returnErrors)   {
+                    var_dump($statement);
+                    return "Row statement save error: {$statement->error}";
+                }
+                else    {
+                    return false;
+                }
+            }
+            $statement->close();
+        }
+        else {
+            if($returnErrors)   {
+                return "Row save error: {$this->dbHandle->error}";
+            }
+            else    {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public function __destruct()   {
+
+    }
 
 }

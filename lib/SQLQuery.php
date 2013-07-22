@@ -24,13 +24,15 @@ class SQLQuery {
     /** @var MySQL_Interface **/
     protected $secondHandle;
 
+    protected $usePDO = false;
+
     /** Connects to database **/    
     function connect(MySQL_Interface $firstHandle, MySQL_Interface $secondHandle = null)   {
         $this->firstHandle = $firstHandle;
         $this->secondHandle = $secondHandle;
         $this->useSecondaryHandle(false);
     
-	$this->usePDO = $this->CONFIG->get('DB_NEW');
+	    $this->usePDO = $this->CONFIG->get('DB_NEW');
     }
         
     function useSecondaryHandle($secondary = true){
@@ -49,17 +51,17 @@ class SQLQuery {
         $this->printDebug($secondary);
 
     }
-    
+
     function printDebug($secondary)   {
         DebugLogger::displayLog(get_class($this). " Secondary? " . ($secondary ? "yes" : "no"));
         DebugLogger::displayLog("This Table: ". $this->modelTable);
-	$this->usingPDO = $this->CONFIG->get('DB_NEW');
+	    $this->usingPDO = $this->CONFIG->get('DB_NEW');
         if ($result = $this->dbHandle->query("SELECT DATABASE() as db")) {
 	    if($this->usingPDO)    {
-		$row = $result->fetch(\PDO::FETCH_BOTH);
+		    $row = $result->fetch(\PDO::FETCH_BOTH);
 	    }
 	    else	{
-		$row = $result->fetch_row();
+		    $row = $result->fetch_row();
 	    }
             DebugLogger::displayLog(sprintf("Default database is %s.", $row[0]));
             $result->close();
@@ -92,12 +94,13 @@ class SQLQuery {
     }
     
     function createSelectQuery($options = array()) {
-        $select_query = "SELECT %s \nFROM %s as `%s` %s %s %s %s;";
+        $select_query = "SELECT %s \nFROM %s as `%s` %s %s %s %s \n%s;";
         $where_section = array();
         $order_section = array();
         $group_section = array();
         $join_section = array();
         $join_query = "";
+        $extra = "";
         $columns = implode(", \n    ", $this->modelColumns);
         $import = extract($options, EXTR_PREFIX_ALL, 'opts');   //do not overwrite current variables
         if(isset($opts_conditions) && is_array($opts_conditions)){
@@ -160,10 +163,16 @@ class SQLQuery {
                 }
             } 
         }
+        if(isset($opts_limit)){
+            $extra .= sprintf("LIMIT %d\n", $opts_limit);
+            if(isset($opts_offset)){
+                $extra .= sprintf("OFFSET %d\n", $opts_offset);
+            }
+        }
         //Custom Fields
         if(isset($opts_fields) && is_array($opts_fields) && count($opts_fields) > 0){
             foreach($opts_fields as $key=>&$fieldName){
-                if(trim($fieldName) == "*") {   
+                if(trim($fieldName) == "*") {
                     //add all columns from this model:
                     $fieldName = implode(", \n    ", $this->modelColumns);
                     continue;
@@ -171,7 +180,7 @@ class SQLQuery {
                 list($modelName, $fName) = explode(".",$fieldName) + array("a", "b");
                 if($fName == "*")   {
                     $modelObject = $this->getModelObject($modelName, true);
-                    if($modelObject)    {
+                    if($modelObject && $modelObject->getModelTable(false) !== 'appmodels')    {
                         $cols = $modelObject->getModelColumns();
                         $fieldName = implode(", \n    ", $cols);
                         continue;
@@ -203,39 +212,42 @@ class SQLQuery {
             }
             $columns = implode(", \n    ", $opts_fields);
         }
-        $select_query = sprintf($select_query, $columns, $this->getModelTable(), $this->modelName, $join_query, $where, $group, $order);
+        $select_query = sprintf($select_query, $columns, $this->getModelTable(), $this->modelName, $join_query, $where, $group, $order, $extra);
         $this->lastQuery = $select_query;
         return $select_query;
     }
 
-    function select($options = array(), $single = 0, $prepareOptions = array()){
+    function select($options = array(), $single = 0, $prepareOptions = array()) {
+        if($single === 1)   {
+            $options["limit"] = 1;
+        }
         $select_query = $this->createSelectQuery($options);
         $statement = $this->dbHandle->prepare($select_query);
         if($statement)  {
             if(count($prepareOptions) > 1)  {   //make sure at least one thing needs to be bound
-		if($this->usePDO)   {
-		    
-		    $opts = str_split($prepareOptions[0]);
-		    unset($prepareOptions[0]);
-		    $count = 0;
-		    foreach($prepareOptions as $key=>$option)	{
-			switch ($opts[$count++]):
-			    case "i":
-				$statement->bindValue($key, $option, \PDO::PARAM_INT);
-				break;			    
-			    default:
-				$statement->bindValue($key, $option, \PDO::PARAM_STR);//, strlen($option));
-				break;
-			endswitch;
-		    }
-		}
-		else	{
-		    call_user_func_array(array($statement, 'log_bind_param'), array($prepareOptions));  //passed by reference
-		}
+                if($this->usePDO)   {
+
+                    $opts = str_split($prepareOptions[0]);
+                    unset($prepareOptions[0]);
+                    $count = 0;
+                    foreach($prepareOptions as $key=>$option)	{
+                        switch ($opts[$count++]):
+                            case "i":
+                            $statement->bindValue($key, $option, \PDO::PARAM_INT);
+                            break;
+                            default:
+                            $statement->bindValue($key, $option, \PDO::PARAM_STR);
+                            break;
+                        endswitch;
+                    }
+                }
+                else	{
+                    call_user_func_array(array($statement, 'log_bind_param'), array($prepareOptions));  //passed by reference
+                }
             }
 
             $return = $this->run_prepared_query($statement, $single);
-	    return $return;
+	        return $return;
         }
         else    {
             return $this->getError();
@@ -279,7 +291,10 @@ class SQLQuery {
                     array_push($result, $tempResults);
                 }
                 $statement->close();
-                return($result);
+                if($singleResult > 1)   {
+                    $result = array_slice($result, 0, $singleResult); //limit results
+                }
+                return $result;
             }
 
             return ($statement ? true : false);
@@ -385,21 +400,6 @@ class SQLQuery {
     }
     
     function getModelObject($modelName, $returnIfFalse = false){
-        if(isset($this->$modelName)){     
-            $this->currentModel = $this->$modelName;
-            return $this->$modelName;
-        }
-        else if(!isset($this->$modelName) && isset($this->currentModel->$modelName) ){
-            $this->currentModel = $this->currentModel->$modelName;
-            return $this->currentModel;
-        }
-        else if($modelName == $this->modelName) {    //joining with my own model
-            $this->currentModel = $this;
-            return $this;
-        }
-        if($returnIfFalse)  {
-            return false;
-        }
-        return isset($this->currentModel) ? $this->currentModel : false;
+        return AppModelFactory::buildModel($modelName, $this->CONFIG, $this->firstHandle, $this->secondHandle, true);
     }
 }

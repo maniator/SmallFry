@@ -89,6 +89,7 @@ class Config {
                 "controller" => $controllerName,
                 "page" => $page,
                 "args" => $args,
+                "model" => $model,
             );
         }
         else    {

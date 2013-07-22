@@ -42,15 +42,23 @@ Class Bootstrap {
      * @param Config $CONFIG 
      */
     function __construct(Config $CONFIG) {
-        $this->CONFIG = $CONFIG;
-        $this->CONFIG->set('page_title', $this->CONFIG->get('DEFAULT_TITLE'));
-        $this->CONFIG->set('template', $this->CONFIG->get('DEFAULT_TEMPLATE'));
-        $this->_session = new SessionManager($this->CONFIG->get('APP_NAME'));
-        $this->_path = $this->readPath();
-        $this->_controller = $this->loadController();
-        $this->_template = new Template($this->_path, $this->_session, $this->_controller, $this->CONFIG); //has destructor that controls it
-        $this->_controller->displayPage($this->_path->args);   //run the page for the controller
-        $this->_template->renderTemplate($this->_path->args); //only render template after all is said and done
+        try {
+            $this->CONFIG = $CONFIG;
+            $this->CONFIG->set('page_title', $this->CONFIG->get('DEFAULT_TITLE'));
+            $this->CONFIG->set('template', $this->CONFIG->get('DEFAULT_TEMPLATE'));
+            $this->_session = new SessionManager($this->CONFIG->get('APP_NAME'));
+            $this->_path = $this->readPath();
+            $this->_controller = $this->loadController();
+            $this->_template = new Template($this->_path, $this->_session, $this->CONFIG);
+            $this->_template->setController($this->_controller);
+            $this->_controller->setPage($this->_path->page);
+            $this->_controller->displayPage($this->_path->args);   //run the page for the controller
+            $this->_template->renderTemplate($this->_path->args); //only render template after all is said and done
+        }
+        catch (\Exception $e)    {
+	        header("HTTP/1.1 404 Not Found");
+            exit;
+        }
     }
     
     /**
@@ -80,7 +88,6 @@ Class Bootstrap {
             'route_args' => array_slice($path_info, 2),   //if is a route, ignore page
             'model' => $model
         );
-        
         return $obj;
     }
     
@@ -88,8 +95,6 @@ Class Bootstrap {
      * @return AppController
      */
     private function loadController(){
-        $this->CONFIG->set('page', $this->_path->page);
-
         //LOAD CONTROLLER
         $modFolders = array('images', 'js', 'css');
 
@@ -101,23 +106,33 @@ Class Bootstrap {
         
         if(count($folderIntersect) == 0){ //load it only if it is not in one of those folders
             $controllerName = "{$this->_path->model}Controller";
-            $app_controller = $this->create_controller($controllerName); 
+            $model = $this->createModel($this->_path->model);
+            $self = $this;
+            $callback = function($modelName) use (&$model, &$self){
+                if(get_class($model) === "SmallFry\lib\AppModel")   { //check if model DNE
+                    $newModel = $self->createModel($modelName);
+                    return $newModel;
+                }
+                else	{ //return the original model
+                    return $model;
+                }
+            };
+            $app_controller = $this->createController($controllerName, $model, $callback); 
             if(!$app_controller)    {
                 $route = $this->CONFIG->getRoute($this->_path->model);
                 if($route)  {   //try to find route
                     $this->_path->page = $route->page;
-                    $this->CONFIG->set('page', $route->page);   //reset the page name
                     $this->_path->args = count($route->args) ? $route->args : $this->_path->route_args;
-                    $app_controller = $this->create_controller($route->controller);
+		            $model = $this->createModel($route->model);
+                    $app_controller = $this->createController($route->controller, $model);
                     if(!$app_controller) {
                         //show nothing 
-                        header("HTTP/1.1 404 Not Found");
-                        exit;
+			            throw new \Exception("You cannot create a controller here for this route ({$route->controller}).");
                     }
                 }
                 else    {
                     //show nothing 
-                    header("HTTP/1.1 404 Not Found");
+                    throw new \Exception("That controller does not exist ({$controllerName}).");
                     exit;
                 }
             }
@@ -128,18 +143,14 @@ Class Bootstrap {
         }
         //END LOAD CONTROLLER
     }
-   
-    /**
-     * @param string $controllerName
-     * @return AppController 
-     */
-    private function create_controller($controllerName) {
+    
+    public function createModel($model)  {
         
-    	$useOldVersion = !$this->CONFIG->get('DB_NEW');
-    	$mySQLClass = "SmallFry\lib\MySQL_PDO";
-    	if($useOldVersion)  {
-    	    $mySQLClass = "SmallFry\lib\MySQL_Improved";
-    	}
+        $useOldVersion = !$this->CONFIG->get('DB_NEW');
+        $mySQLClass = "SmallFry\lib\MySQL_PDO";
+        if($useOldVersion)  {
+            $mySQLClass = "SmallFry\lib\MySQL_Improved";
+        }
         //DB CONN
         $firstHandle = null;
         $secondHandle = null;
@@ -160,13 +171,23 @@ Class Bootstrap {
                                    $database_info['password'], $database_info['database'], $this->CONFIG->get('DEBUG_QUERIES'));
         }
         //END DB CONN
+	
+	    return AppModelFactory::buildModel($model, $this->CONFIG, $firstHandle, $secondHandle);
+    }
+   
+    /**
+     * @param string $controllerName
+     * @return AppController 
+     */
+    private function createController($controllerName, $model, $callback = null) {
                 
         $nameSpacedController = "SmallFry\\Controller\\$controllerName";
-        if (class_exists($nameSpacedController) && is_subclass_of($nameSpacedController, __NAMESPACE__.'\AppController')) {  
-            $app_controller  = new $nameSpacedController($this->_session, $this->CONFIG, $firstHandle, $secondHandle); 
+        if (class_exists($nameSpacedController) && is_subclass_of($nameSpacedController, __NAMESPACE__.'\AppController')) {
+            $app_controller = new $nameSpacedController($this->_session, $this->CONFIG, $model, $callback);
         } else {
             return false;
         }
+	
         return $app_controller;
     }
     
@@ -189,7 +210,7 @@ Class Bootstrap {
             readfile($file);
         }
         else {
-            header("HTTP/1.1 404 Not Found");
+	    throw new \Exception("File does not exist ({$file}).");
         }
         exit;
     }
