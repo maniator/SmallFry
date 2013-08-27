@@ -114,19 +114,6 @@ class SQLQuery {
         $extra = "";
         $columns = implode(", \n    ", $this->modelColumns);
         $import = extract($options, EXTR_PREFIX_ALL, 'opts');   //do not overwrite current variables
-//        if(isset($opts_conditions) && is_array($opts_conditions)){
-//            $where_section = $opts_conditions;
-//        }
-//        if(isset($opts_orderby) && is_array($opts_orderby)){
-//            $order_section = $opts_orderby;
-//        }
-//        if(isset($opts_groupby) && is_array($opts_groupby)){
-//            $group_section = $opts_groupby;
-//        }
-//
-//        if(isset($opts_join) && is_array($opts_join)){
-//            $join_section = $opts_join;
-//        }
         $where = $order = $group = "";
         if(count($where_section) > 0){
             $where .= "\nWHERE ";
