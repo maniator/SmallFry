@@ -92,30 +92,41 @@ class SQLQuery {
             $type, $id
         ));
     }
+    private function filterOption($array, $key, $asArray = true) {
+        if(isset($array[$key]) && is_array($array[$key])) {
+            return $array[$key];
+        }
+        elseif($asArray) {
+            return array();
+        }
+        else    {
+            return false;
+        }
+    }
     
     function createSelectQuery($options = array()) {
         $select_query = "SELECT %s \nFROM %s as `%s` %s %s %s %s \n%s;";
-        $where_section = array();
-        $order_section = array();
-        $group_section = array();
-        $join_section = array();
+        $where_section = $this->filterOption($options, 'conditions');
+        $order_section = $this->filterOption($options, 'orderby');
+        $group_section = $this->filterOption($options, 'groupby');
+        $join_section = $this->filterOption($options, 'join');
         $join_query = "";
         $extra = "";
         $columns = implode(", \n    ", $this->modelColumns);
         $import = extract($options, EXTR_PREFIX_ALL, 'opts');   //do not overwrite current variables
-        if(isset($opts_conditions) && is_array($opts_conditions)){
-            $where_section = $opts_conditions;
-        }
-        if(isset($opts_orderby) && is_array($opts_orderby)){
-            $order_section = $opts_orderby;
-        }
-        if(isset($opts_groupby) && is_array($opts_groupby)){
-            $group_section = $opts_groupby;
-        }
-
-        if(isset($opts_join) && is_array($opts_join)){
-            $join_section = $opts_join;
-        }
+//        if(isset($opts_conditions) && is_array($opts_conditions)){
+//            $where_section = $opts_conditions;
+//        }
+//        if(isset($opts_orderby) && is_array($opts_orderby)){
+//            $order_section = $opts_orderby;
+//        }
+//        if(isset($opts_groupby) && is_array($opts_groupby)){
+//            $group_section = $opts_groupby;
+//        }
+//
+//        if(isset($opts_join) && is_array($opts_join)){
+//            $join_section = $opts_join;
+//        }
         $where = $order = $group = "";
         if(count($where_section) > 0){
             $where .= "\nWHERE ";
@@ -164,14 +175,15 @@ class SQLQuery {
                 }
             } 
         }
-        if(isset($opts_limit)){
-            $extra .= sprintf("LIMIT %d\n", $opts_limit);
-            if(isset($opts_offset)){
-                $extra .= sprintf("OFFSET %d\n", $opts_offset);
+        if($this->filterOption($options, 'limit', false) !== false){
+            $extra .= sprintf("LIMIT %d\n", $this->filterOption($options, 'limit', false));
+            if($this->filterOption($options, 'offset', false) !== false){
+                $extra .= sprintf("OFFSET %d\n", $this->filterOption($options, 'offset', false));
             }
         }
         //Custom Fields
-        if(isset($opts_fields) && is_array($opts_fields) && count($opts_fields) > 0){
+        $opts_fields = $this->filterOption($options, 'fields');
+        if(is_array($opts_fields) && count($opts_fields) > 0){
             foreach($opts_fields as $key=>&$fieldName){
                 if(trim($fieldName) == "*") {
                     //add all columns from this model:
