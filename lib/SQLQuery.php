@@ -113,7 +113,6 @@ class SQLQuery {
         $join_query = "";
         $extra = "";
         $columns = implode(", \n    ", $this->modelColumns);
-        $import = extract($options, EXTR_PREFIX_ALL, 'opts');   //do not overwrite current variables
         $where = $order = $group = "";
         if(count($where_section) > 0){
             $where .= "\nWHERE ";
