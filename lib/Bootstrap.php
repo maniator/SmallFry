@@ -55,7 +55,7 @@ Class Bootstrap {
             $this->_controller->displayPage($this->_path->args);   //run the page for the controller
             $this->_template->renderTemplate($this->_path->args); //only render template after all is said and done
         }
-        catch (\Exception $e)    {
+        catch (\Exception $e)	{
 	        header("HTTP/1.1 404 Not Found");
             exit;
         }
@@ -196,21 +196,39 @@ Class Bootstrap {
      * @param array $folderIntersect 
      */
     private function rewrite(array $path_info, array $folderIntersect){
-        
         $find_path = array_keys($folderIntersect);
         $find_length = count($find_path) - 1;
         $file_name = implode(DIRECTORY_SEPARATOR,array_slice($path_info, $find_path[$find_length]));
 
         $file = \SmallFry\Config\DOCROOT."webroot".DIRECTORY_SEPARATOR.$file_name;
+        $file_extension = pathinfo($file, PATHINFO_EXTENSION);
 
         if(is_file($file)){ //if the file is a real file
-            header("Last-Modified: " . date("D, d M Y H:i:s", getlastmod()));
-            include \SmallFry\Config\BASEROOT.DIRECTORY_SEPARATOR.'functions'.DIRECTORY_SEPARATOR.'mime_type.php'; // needed for setups without `mime_content_type`
-            header('Content-type: ' . mime_content_type($file));
-            readfile($file);
+            if($file_extension === 'php')   {
+                include("./webroot/{$file_name}"); exit;
+            }
+            include \SmallFry\Config\BASEROOT.DIRECTORY_SEPARATOR.'functions'.DIRECTORY_SEPARATOR.'apache_request_headers.php'; // needed for setups without `apache_request_headers`
+            // Getting headers sent by the client.
+            $headers = apache_request_headers();
+            // Checking if the client is validating his cache and if it is current.
+            if (isset($headers['IF-MODIFIED-SINCE']) && (strtotime($headers['IF-MODIFIED-SINCE']) == filemtime($file))) {
+                // Client's cache IS current, so we just respond '304 Not Modified'.
+                header('Last-Modified: '.gmdate('D, d M Y H:i:s', filemtime($file)).' GMT', true, 304);
+                header('Expires: '.gmdate('D, d M Y H:i:s \G\M\T', time() + 3600));
+                header("Cache-Control: max-age=2592000");
+            } else {
+                // File not cached or cache outdated, we respond '200 OK' and output the file.
+                header('Last-Modified: '.gmdate('D, d M Y H:i:s', filemtime($file)).' GMT', true, 200);
+                header('Expires: '.gmdate('D, d M Y H:i:s \G\M\T', time() + 3600));
+                header("Cache-Control: max-age=2592000");
+                header('Content-Length: '.filesize($file));
+                include \SmallFry\Config\BASEROOT.DIRECTORY_SEPARATOR.'functions'.DIRECTORY_SEPARATOR.'mime_type.php'; // needed for setups without `mime_content_type`
+                header('Content-type: ' . mime_content_type($file));
+                readfile($file);
+            }
         }
         else {
-	    throw new \Exception("File does not exist ({$file}).");
+	        throw new \Exception("File does not exist ({$file}).");
         }
         exit;
     }

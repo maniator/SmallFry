@@ -31,7 +31,7 @@ class SQLQuery {
         $this->firstHandle = $firstHandle;
         $this->secondHandle = $secondHandle;
         $this->useSecondaryHandle(false);
-    
+	
 	    $this->usePDO = $this->CONFIG->get('DB_NEW');
     }
         
@@ -159,7 +159,8 @@ class SQLQuery {
                         $joinOn = $joinCondition;
                     }
                     $asTable = (isset($join['asTable'])? $join['asTable'] : $join['model']);
-                    $join_query .= sprintf("\nLEFT JOIN %s as `%s` ON %s", $model_obj->getModelTable(), $asTable, $joinOn);
+                    $join_query .= sprintf("\n%s JOIN %s as `%s` ON %s", isset($join['type']) ? $join['type'] : 'LEFT',
+                                        $model_obj->getModelTable(), $asTable, $joinOn);
                 }
             } 
         }
@@ -218,8 +219,8 @@ class SQLQuery {
     }
 
     function select($options = array(), $single = 0, $prepareOptions = array()) {
-        if($single === 1)   {
-            $options["limit"] = 1;
+        if($single >= 1)   {
+            $options["limit"] = $single;
         }
         $select_query = $this->createSelectQuery($options);
         $statement = $this->dbHandle->prepare($select_query);

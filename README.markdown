@@ -13,16 +13,16 @@ Put all controllers in the `/controller` folder
 
 An example of a controller called `Test`:
 
-        namespace SmallFry\Controller;
-        
-		class TestController extends \SmallFry\lib\AppController {
-			protected $name = 'Test';
-			
-			//pages go here
-			function index(){
-				$this->template->set('test', 'hello there');
-			}
-		}
+    namespace SmallFry\Controller;
+    
+    class TestController extends \SmallFry\lib\AppController {
+    	protected $name = 'Test';
+    	
+    	//pages go here
+    	function index(){
+    		$this->template->set('test', 'hello there');
+    	}
+    }
 ###Views:
 Put all views in the `/view` folder with a directory for every different controller:
 

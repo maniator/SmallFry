@@ -26,6 +26,8 @@ class AppModel extends SQLQuery {
      * @var array 
      */
     protected $using;
+    protected $relationships;
+
     /**
      *
      * @var Config
@@ -41,7 +43,7 @@ class AppModel extends SQLQuery {
      * @var MySQL_Interface
      */
     protected $secondHandle;
-    
+
     /**
      * @param Config $CONFIG
      * @param MySQL_Interface $firstHandle
@@ -71,7 +73,7 @@ class AppModel extends SQLQuery {
         /** Using Models **/
         if(is_array($this->using)){
             foreach($this->using as $usingModel){
-    	$this->addUseModel($usingModel);
+		$this->addUseModel($usingModel);
             }
         }
     }
@@ -159,8 +161,20 @@ class AppModel extends SQLQuery {
         $set = array();
         $prepare = array();
         foreach($values as $fieldName=>$value)  {
-            $set[] = sprintf("`%s` = ?", $fieldName);
-            $prepare[] = $value;
+            $columns = $this->getColumnNames(false);
+            if(in_array($fieldName, $columns)){
+                if(is_array($value) && count($value) === 2)    {
+                    $set[] = sprintf("`%s` = %s", $fieldName, $value[0]);
+                    $prepare[] = $value[1];
+                }
+                elseif(!is_array($value))    {
+                    $set[] = sprintf("`%s` = ?", $fieldName);
+                    $prepare[] = $value;
+                }
+            }
+            else    {
+                exit("`$fieldName` does not exist.");
+            }
         }
         if(is_bool($rowId)) {
             //this allows for less parameters when doing an insert
@@ -183,16 +197,17 @@ class AppModel extends SQLQuery {
         }
 
         $statement = $this->dbHandle->prepare($saveQuery);
+
         if($statement){
             if(!$statement->execute($prepare)){
                 if($returnErrors)   {
-                    var_dump($statement);
                     return "Row statement save error: {$statement->error}";
                 }
                 else    {
-                    return false;
+                    return "Some statement error happened";
                 }
             }
+            $this->last_insert_id = $this->dbHandle->insert_id;
             $statement->close();
         }
         else {
@@ -200,10 +215,180 @@ class AppModel extends SQLQuery {
                 return "Row save error: {$this->dbHandle->error}";
             }
             else    {
-                return false;
+                return "Some error happened";
             }
         }
         return true;
+    }
+
+    public function __call($name, $args)    {
+        //find all
+        $findAllFormat = "findAllBy%s";
+        list($findAll) = sscanf($name, $findAllFormat);
+        //find one
+        $findOneFormat = "findOneBy%s";
+        list($findOne) = sscanf($name, $findOneFormat);
+
+        //get all models
+        $column_names = $this->getColumnNames(false);
+        $models = \SmallFry\lib\AppModelFactory::allModels();
+
+        $conditionList = "";
+        $single = 0;
+        if($findAll !== null)   {
+            $conditionList = $findAll;
+        }
+        elseif($findOne !== null)   {
+            $conditionList = $findOne;
+            $single = 1;
+        }
+
+        $andFields = explode("And", $conditionList); //($conditionList, $andFormat);
+        $conditions = array();
+        $prepare = array('');
+        foreach($andFields as $field)  {
+            if(!is_null($field))    {
+                list($modelName, $fieldName) = explode("__", $field) + array(null, null);
+                $isset = false;
+                if(!is_null($fieldName)) {
+                    list($asModel, $modelName) = explode("_", $modelName) + array(null, null);
+                    if(substr($fieldName, 0, 1) === "_")    {
+                        $fieldName = substr($fieldName, 1);
+                    }
+                    if(is_null($modelName)) {
+                        $modelName = $asModel;
+                    }
+                    foreach($models as $model)  {
+                        if($modelName === $model->modelName)    {
+                            $column_names = $model->getColumnNames(false);
+                            if(in_array(trim($fieldName), $column_names))   {
+                                $conditions[] = sprintf("%s.%s = ?", $asModel, $fieldName);
+                                $prepare[0] .= "s"; $prepare[] = array_shift($args);
+                                $isset = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                else    {
+                    $fieldName = $field;
+                    $column_names = $this->getColumnNames(false);
+                    if(in_array($fieldName, $column_names))   {
+                        $conditions[] = sprintf("%s.%s = ?", $this->modelName, $fieldName);
+                        $prepare[0] .= "s"; $prepare[] = array_shift($args);
+                        $isset = true;
+                    }
+                }
+                if(!$isset) {
+                    return "Error! `{$fieldName}` is not in any Model";
+                    exit;
+                }
+            }
+        }
+
+        return $this->findAll($conditions, $prepare, $single);
+    }
+
+    public function findAll($conditions = array(), $prepare = array(), $single = 0)   {
+        if(is_array($this->relationships) && count($this->relationships))   {
+            $buildJoins = array();
+            $manyToMany = array();
+            foreach($this->relationships as $modelType => $relationship)  {
+                $model = isset($relationship['model']) ? $relationship['model'] : $modelType;
+                $type = isset($relationship['type']) ? $relationship['type'] : 'OneToOne';
+                switch($type)   {
+                    case 'OneToOne':    {
+                        $join = array();
+                        $join['model'] = $model;
+                        $join['asTable'] = $modelType;
+                        $join['on'] = array();
+                        if(isset($relationship['conditions']))  {
+                            foreach($relationship['conditions'] as $index => $value)    {
+                                if(is_numeric($index)) $index = $value; //index and value are the same;
+                                $join['on'][] = sprintf(
+                                    "%s.%s = %s.%s",
+                                    $this->modelName, $index, $modelType, $value
+                                );
+                            }
+                        }
+                        $buildJoins[] = $join;
+                        break;
+                    }
+                    default: {
+                        //one to many or many to many
+                        $manyToMany[$modelType] =  array(
+                            'conditions' => isset($relationship['conditions']) ?
+                                                $relationship['conditions'] : array()
+                        );
+                        $through = $relationship['through'];
+                        $firstJoin = array(
+                            'asTable' => "{$through}_{$modelType}",
+                            'model' => $through,
+                            'on' => array(),
+                        );
+                        if(isset($relationship['conditions']))  {
+                            $value = array_shift($relationship['conditions']);
+                            $firstJoin['on'][] = sprintf("%s.%s = %s.%s", $this->modelName, $value,
+                                $firstJoin['asTable'], $value);
+                        }
+                        $manyToMany[$modelType][] = $firstJoin;
+                        $secondJoin = array(
+                            'asTable' => $modelType,
+                            'model' => $model,
+                            'on' => array(),
+                        );
+                        if(isset($relationship['conditions']))  {
+                            $value = array_shift($relationship['conditions']);
+                            $secondJoin['on'][] = sprintf("%s.%s = %s.%s", $secondJoin['asTable'], $value,
+                                $firstJoin['asTable'], $value);
+                        }
+                        $manyToMany[$modelType][] = $secondJoin;
+                    }
+                }
+            }
+
+            $select = $this->prepared_select(array(
+                'conditions' => $conditions,
+                'join' => $buildJoins
+            ), $prepare, $single);
+
+            if(!is_array($select))  {
+                return $select;
+                exit;
+            }
+
+            foreach($manyToMany as $modelType => $joins)    {
+                $conditions = array_shift($joins);
+                $joinCondition = array_shift($conditions);
+                if($single === 1)   {
+                    $select[$modelType] = $this->prepared_select(array(
+                        'fields' => array("{$modelType}.*"),
+                        'conditions' => array(
+                            sprintf("%s.%s = ?", $this->modelName, $joinCondition)
+                        ),
+                        'join' => $joins
+                    ), array("s", $select[$this->modelName][$joinCondition]));
+                }
+                else    {
+                    foreach($select as &$row)    {
+                        $row[$modelType] = $this->prepared_select(array(
+                            'fields' => array("{$modelType}.*"),
+                            'conditions' => array(
+                                sprintf("%s.%s = ?", $this->modelName, $joinCondition)
+                            ),
+                            'join' => $joins
+                        ), array("s", $row[$this->modelName][$joinCondition]));
+                    }
+                }
+            }
+
+            return $select;
+        }
+        else    {
+            return $this->prepared_select(array(
+                'conditions' => $conditions,
+            ), $prepare, $single);
+        }
     }
 
     public function __destruct()   {
